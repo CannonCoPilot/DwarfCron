@@ -72,11 +72,14 @@ if (P.salt) console.log(`     note: salt ${P.salt} (the explorer's year() has no
 // grows it: the year without it, then its four seasons on the year's repeat counts with V7.NR's seeds, then the season's
 // cross-layer links over every cast
 const added = Object.keys(P.added || {}).filter(L => B.active.includes(L));
+// v8 (user 27 Oct, flier seeds): the probe's own surroundings (sw-wt/plugin's nrprobe already writes ctx.surroundings), not
+// a spec for the explorer to re-derive one from -- the probe holds no biome list, so {} always read back as 'calm' here.
+const spec = { surroundings: P.surroundings };
 let cs;
-if (!added.length) cs = sim.year(B, {}, prm, P.site, P.year);
+if (!added.length) cs = sim.year(B, spec, prm, P.site, P.year);
 else {
   console.log(`     ${added.join(', ')} cast after the build: the explorer grows ${added.length > 1 ? 'them' : 'it'} after the year, as the engine does` + (P.crossAdded ? '' : ' (engine: no cross-layer relink after the add)'));
-  const y0 = sim.year(Object.assign({}, B, { active: B.active.filter(L => !added.includes(L)) }), {}, prm, P.site, P.year);
+  const y0 = sim.year(Object.assign({}, B, { active: B.active.filter(L => !added.includes(L)) }), spec, prm, P.site, P.year);
   const used = {}, out = {};
   let built = 0, n = 0;
   sim.useBuild(ctxOf(P.addCtx));   // the added layer grows on the fort as the engine read it then
@@ -84,7 +87,7 @@ else {
   for (let s0 = 0; s0 < 4; s0++) for (const L of added) {
     n++;
     const seed = (P.site * 7919 + P.year * 104729 + s0 * 131 + sim.LAYERS.indexOf(L) * 17) % 2147483647;
-    const tr = sim.cast(B.lists[L + '|' + s0], L, B.sub, used, sim.Rng(seed), prm, {});
+    const tr = sim.cast(B.lists[L + '|' + s0], L, B.sub, used, sim.Rng(seed), prm, spec);
     tr.built = built + n;
     out[L + '|' + s0] = tr;
   }

@@ -24,6 +24,9 @@ LINK_AS = dict(RO['LINK_AS'])
 FORCED_PREY = dict(RO['FORCED_PREY'])
 FLIER_ONLY_PREY = set(RO['FLIER_ONLY_PREY'])
 FLIER_ONLY_TYPES = set(RO['FLIER_ONLY_TYPES'])
+# v8 (user 27 Oct, flier seeds): evil/good/savage+extinct candidate lists for the flying seed ladder (sw-wt/plugin
+# scripts/seasonal-wildlife.lua NR.cast); savage-flier and raptor are predicates in code, not data, on both sides
+FLIER_SEEDS = sets(RO['FLIER_SEEDS'])
 FORCED_DIET = {t: dict(d, vermin=[tuple(x) for x in d.get('vermin', [])]) for t, d in RO['FORCED_DIET'].items()}
 REAL_APEX = {t: tuple(v) for t, v in RO['REAL_APEX'].items()}
 EVIL_APEX = dict(RO['EVIL_APEX'])
@@ -69,4 +72,5 @@ def meta():
         'bonus_predator': sorted(BONUS_PREDATOR), 'hunted_by': HUNTED_BY,
         'fresh_eaters': sorted(FRESH_EATERS), 'giant_fly_skip': sorted(GIANT_FLY_SKIP), 'gobble_rules': GOBBLE_RULES,
         'vclass': VCLASS, 'gobble_edges': GOBBLE_EDGES, 'hab_class': HAB_CLASS, 'hab_eats': {k: sorted(v) for k, v in HAB_EATS.items()},
+        'flier_seeds': {k: sorted(v) for k, v in FLIER_SEEDS.items()},
     }

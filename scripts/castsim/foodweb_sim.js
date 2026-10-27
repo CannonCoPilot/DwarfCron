@@ -43,6 +43,9 @@
     // user 17 Oct: a species read as another for every feeding link and the slots that steer them (engine MODEL.link)
     const LINK_AS = M.link_as || {}, FORCED_PREY = M.forced_prey || {}, FORCED_DIET = M.forced_diet || {};
     const FLIER_ONLY_PREY = new Set(M.flier_only_prey || []), FLIER_ONLY_TYPES = new Set(M.flier_only_types || []);
+    // v8 (user 27 Oct, flier seeds): evil/good/savage+extinct candidate lists (sw-wt/plugin rules/new-rules.json
+    // FLIER_SEEDS); savage-flier and raptor are predicates below, not data, same split as the engine
+    const FLIER_SEEDS = setOf(M.flier_seeds || {});
     const link = c => (LINK_AS[c.t] && BY[LINK_AS[c.t]]) || c;
 
     // ------------------------------------------------------------ the fort
@@ -66,6 +69,19 @@
     }
     function regionType(fb) {
       return [fb.sav >= M.savage_at ? 'savage' : 'wild', fb.evil >= M.evil_at ? 'evil' : (fb.evil <= M.good_at ? 'good' : 'neutral')];
+    }
+    // v8 (user 27 Oct, flier seeds): the fort's land-wide surroundings, for a single seed pick (engine ROSTER.FP.surroundings).
+    // Every land biome in one explorer spec shares spec.rtype's sav/evil (there is no per-biome savagery here, unlike a real
+    // fort's region tiles), so reading spec.rtype directly is the same as the engine's OR-across-land-biomes: evil if the
+    // fort reads evil, else good if it reads good, else savage if it reads savage, else calm/wilderness.
+    function surroundings(spec) {
+      if (spec.surroundings) return spec.surroundings;   // a caller holding the engine's own value (nr_probe_check.js), not a spec to derive it from
+      if (!(spec.land || []).length) return 'calm';
+      const [sav, al] = regionType(spec.rtype);
+      if (al === 'evil') return 'evil';
+      if (al === 'good') return 'good';
+      if (sav === 'savage') return 'savage';
+      return 'calm';
     }
     function wiresFor(fbs) {
       const out = [];
@@ -731,6 +747,37 @@
           out.seed = s.c.t; out.seedWhy = hv[s.c.t];
           put(s, best, 'seed (' + hv[s.c.t] + ')');
         }
+      } else if (prm.seed && L === 'flying') {
+        // v8 (user 27 Oct): "Fliers need seeds" -- a ladder by the fort's land-wide surroundings (surroundings(spec)):
+        // evil (harpy, nightwing, the cavern bat tool-wired onto land -- FLIER_SEEDS.evil), good (the swan, the white
+        // stork -- FLIER_SEEDS.good), a savage fort under the extinct worldgen rule (the three prehistoric fliers --
+        // FLIER_SEEDS.extinct; the pool itself already gates these on the rule, so an empty rung here just falls
+        // through), any savage fort (any flier animal person, or a giant flying bug), and last any calm/wilderness fort
+        // (any non-giant non-sentient raptor not in FLY_NOT_RAPTOR -- the old unseeded floor). Each rung tries only
+        // candidates free in THIS season's flying list; an empty or fully-taken rung falls through, never back up.
+        // Applies whenever prm.seed is set, regardless of LINKS/direct (the engine has no such split for flying).
+        const fromSet = set => set ? free.filter(x => set.has(x.c.t)) : [];
+        const fromPred = fn => free.filter(x => fn(x.c));
+        const rungs = [
+          { why: 'evil flier', cands: fromSet(FLIER_SEEDS.evil) },
+          { why: 'good flier', cands: fromSet(FLIER_SEEDS.good) },
+          { why: 'savage, extinct', cands: fromSet(FLIER_SEEDS.extinct) },
+          { why: 'savage flier', cands: fromPred(c => c.h === 'flier' && (c.ap || GIANT_BUGS.has(c.t))) },
+          { why: 'raptor', cands: fromPred(c => c.g === 'RP' && !c.gi && !c.se && !c.ap && !NOT_RAPTOR.has(c.t)) },
+        ];
+        const sr = surroundings(spec) || 'calm';
+        const start = sr === 'evil' ? 0 : sr === 'good' ? 1 : sr === 'savage' ? 2 : 4;
+        for (let i = start; i < rungs.length; i++) {
+          const r = rungs[i];
+          const s = pick(r.cands);
+          if (s) {
+            let best = null;
+            for (const x of room(s)) if (best === null || frac(x) > frac(best)) best = x;
+            out.seed = s.c.t; out.seedWhy = r.why;
+            put(s, best, 'seed (' + r.why + ')');
+            break;
+          }
+        }
       }
       // growth
       let guard = 0;
@@ -983,7 +1030,7 @@
       LINKS = keep;
       return edges;
     }
-    return { seasonHoles, crossLinks, OFF_LAYERS, M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, vanillaEdges, vanillaEats, linkWhy, FAMILIES, NEW_RULES, gobbleSet, allowedSides, sidesOf, FRESH_EATERS, groundPrey, extras, link, forcedPrey, useBuild: B => { CUR = { P: B.P, promoted: B.promoted || new Set(), mapOnly: B.mapOnly || {}, apexOn: B.apexOn || {} }; }, apexBar, rawSides, huntFlag, armedWhy, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor };
+    return { seasonHoles, crossLinks, OFF_LAYERS, M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, vanillaEdges, vanillaEats, linkWhy, FAMILIES, NEW_RULES, gobbleSet, allowedSides, sidesOf, FRESH_EATERS, groundPrey, extras, link, forcedPrey, useBuild: B => { CUR = { P: B.P, promoted: B.promoted || new Set(), mapOnly: B.mapOnly || {}, apexOn: B.apexOn || {} }; }, apexBar, rawSides, huntFlag, armedWhy, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor, surroundings };
   }
 
   const api = { make, LAYERS };

@@ -87,7 +87,11 @@ for (const [k, f] of Object.entries(FORTS)) {
       for (const L of ['cavern1', 'cavern2', 'cavern3']) if (H[L]) { T.cav.unlinked += H[L].unlinked.length; T.cav.unfed += H[L].unfed.length; }
     }
   }
+  // v8 (user 27 Oct, flier seeds): the fort's land-wide surroundings, read by both sides the same way as the flying-seed
+  // ladder itself (engine ROSTER.FP.surroundings / this file's surroundings(spec)); the harness's MODE nrcast builds ctx by
+  // hand (see tests/web/harness.lua), so it reads this field straight from the fixture rather than recomputing it
   out.forts.push({ name: k, active: B.active, P, promoted: [...B.promoted], mapOnly, apexOn, items: its, pairs, slotsBy, lists, sub: B.sub, casts,
+                   surroundings: sim.surroundings(spec),
                    targets: T && { members: T.members, unlinked: T.unlinked, seasonsUnlinked: T.seasonsUnlinked, predators: T.predators, unfed: T.unfed, cavUnlinked: T.cav.unlinked, cavUnfed: T.cav.unfed, cross: T.cross } });
 }
 for (const t of used) out.creatures[t] = sim.BY[t];

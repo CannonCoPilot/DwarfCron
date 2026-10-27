@@ -934,7 +934,8 @@
     seg('#p_links', [['network', nrOnly ? 'New Rules (v8)' : 'Links switched on above' + (on.length ? ' (' + on.join(', ') + ')' : ' (none on)')], ['engine', 'Cast ladder (to v7.6.6)']], state.prm.links,
       v => { state.prm.links = v; renderLinks(); });
     $('#linksNote').textContent = 'Casts are grown on ' + linksDesc(Object.assign({}, state.prm, { network: state.fam })) + '. ' +
-      'From v8 the tool grows every cast on New Rules (rebuild plan rev 7): land-flying grows too, with no seed, and a last step links the season\'s ' +
+      'From v8 the tool grows every cast on New Rules (rebuild plan rev 7): land-flying grows too, now seeded by the fort\'s surroundings ' +
+      '("Fliers need seeds", user 27 Oct: evil, good, savage with the extinct rule, savage, then any raptor), and a last step links the season\'s ' +
       'land-ground, land-flying and water casts by the rules that work across layers (the year grid lists them, with each season\'s holes). ' +
       'The cast ladder is how the tool grew casts up to v7.6.6: a higher trophic tier eats a lower one its habitat reaches, with your rules applied; ' +
       'it stays inside the hunting pairs only.';
