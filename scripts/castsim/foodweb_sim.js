@@ -406,11 +406,12 @@
       const fdA = FORCED_DIET[a.c.t] || {};
       if ((fdA.noTypes || []).includes(sw)) return null;   // user 19 Oct: the alligator's barred vermin types
       if (FLIER_ONLY_TYPES.has(sw)) { const g = (CUR.apexOn || {})[a.c.t]; if (g && g.surf && !g.flyHunter) return null; }   // the bat's type
-      const ex = sw ? extras(a.c).find(x => sd.includes(x.side) && (!x.only || x.only === sw) && (!x.skip || x.skip !== sw)) : null;
+      const wetSide = x => !fdA.wetOnly || x === 'OCEAN' || x === 'FRESH';   // user 27 Oct: an otter eats water vermin only
+      const ex = sw ? extras(a.c).find(x => sd.includes(x.side) && wetSide(x.side) && (!x.only || x.only === sw) && (!x.skip || x.skip !== sw)) : null;
       const fresh = ex ? `GOBBLE_VERMIN_CLASS:${sw}@${ex.side} written (${ex.why})` : null;
       const g = gobbleSet(a.c, L);
       if (!g || !g.has(b.c.swv)) return fresh;
-      const al = allowedSides(a.c), hit = sidesOf(b.c.t).filter(x => al.sides.includes(x) && !(fdA.noFliers && x === 'FLYING'));
+      const al = allowedSides(a.c), hit = sidesOf(b.c.t).filter(x => al.sides.includes(x) && wetSide(x) && !(fdA.noFliers && x === 'FLYING'));
       if (!hit.length) return fresh;
       return `GOBBLE_VERMIN_CLASS:${hit.map(x => b.c.swv + '@' + x).join(', ')} written (${g.get(b.c.swv)})${al.why ? '; ' + al.why : ''}`;
     }
@@ -459,6 +460,14 @@
     }
     // user 17 Oct: no link from a land-ground apex or predator to anything on land-flying (vermin too: a map-only vermin by
     // its FLYING side), unless the hunter is on land-flying too and the prey on land-ground; engine MODEL.apexBar
+    // user 27 Oct: a wetOnly diet (the otters) never takes land-ground prey -- only water vermin (OCEAN/FRESH sides),
+    // semiaquatic prey (the amphibians) and aquatic prey; every family and the ladder read it (engine V7.NR wetBar)
+    function wetBar(a, b) {
+      const d = FORCED_DIET[a.t];
+      if (!d || !d.wetOnly) return false;
+      if (b.v) { const sd = sidesOf(b.t); return !(sd.includes('OCEAN') || sd.includes('FRESH')); }
+      return !(b.h === 'aquatic' || b.h === 'semiaquatic');
+    }
     function apexBar(a, b) {
       const fdA = FORCED_DIET[a.t] || {};
       if ((fdA.never || []).includes(b.t)) return true;   // user 19 Oct: a bird's 'never' list
@@ -511,6 +520,7 @@
       return !!(x && x.apexL && x.apexL.includes(L));
     }
     function massWhy(a, b) {
+      if (wetBar(a, b)) return null;   // user 27 Oct (wetOnly): the cross-layer mass pairs too (engine: NR.eats returns first)
       if (forcedDiet(a, b)) return 'its own diet (user 19 Oct: osprey and eagle fish and snakes, great horned owl hare, polar bear ocean creatures)';
       if (apexBar(a, b)) return null;
       if (forcedPrey(a, b)) return 'every ocean apex takes the leopard seal (user 17 Oct)';
@@ -536,6 +546,7 @@
       const out = [], ca = a.c, cb = b.c;
       if (ca.t === cb.t || a.vermin) return out;
       if (ca.g === 'GZ') return out;   // user 17 Oct: no grazer eats anything, under any rule (engine: ecoArmed, eats, FP.eats, gobble)
+      if (wetBar(ca, cb)) return out;   // user 27 Oct (wetOnly): no family links it
       const ladder = () => {
         for (const sa of a.slots) for (const sb of (b.vermin ? ['vermin'] : b.slots)) {
           if (engineEats({ c: ca, slot: sa, vermin: false }, { c: cb, slot: sb, vermin: b.vermin, vclass: b.vclass }, L)) return `${sa} over ${sb}`;
@@ -576,6 +587,7 @@
     }
     function engineEats(a, b, L) {
       if (a.vermin) return false;
+      if (wetBar(a.c, b.c)) return false;   // user 27 Oct (wetOnly)
       if (!b.vermin && forcedDiet(a.c, b.c)) return true;   // user 19 Oct: the osprey's and eagle's diet
       if (apexBar(a.c, b.c)) return false;   // user 17 Oct: the link bars on the real species
       if (forcedPrey(a.c, b.c)) return true;   // the leopard seal to every ocean apex
