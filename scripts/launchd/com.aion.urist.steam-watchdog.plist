@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- hourly: end a Steam (CrossOver bottle Win10) that stopped answering launches; see scripts/steam-health.py -->
+<!-- install: cp scripts/launchd/com.aion.urist.steam-watchdog.plist ~/Library/LaunchAgents/ &&
+     launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.aion.urist.steam-watchdog.plist -->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.aion.urist.steam-watchdog</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/nathanielcannon/Claude/Projects/DwarfCron/.venv/bin/python</string>
+        <string>/Users/nathanielcannon/Claude/Projects/DwarfCron/scripts/steam-health.py</string>
+        <string>--watchdog</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/nathanielcannon/Claude/Projects/DwarfCron</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/sbin:/usr/bin:/bin</string>
+        <key>HOME</key>
+        <string>/Users/nathanielcannon</string>
+    </dict>
+    <key>StartInterval</key>
+    <integer>3600</integer>
+    <key>StandardOutPath</key>
+    <string>/Users/nathanielcannon/Claude/Projects/DwarfCron/data/logs/steam-watchdog.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/nathanielcannon/Claude/Projects/DwarfCron/data/logs/steam-watchdog.log</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>LimitLoadToSessionType</key>
+    <string>Aqua</string>
+</dict>
+</plist>

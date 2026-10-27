@@ -12,6 +12,12 @@ steam.exe that stops answering hand-offs is what "won't launch" is.
                                                                 hand-off (steam.exe -silent; nothing shows), answered
                                                                 in about 1 s when healthy
     .venv/bin/python scripts/steam-health.py --recover          end Steam and start it again (see Recovery)
+    .venv/bin/python scripts/steam-health.py --watchdog         the hourly launchd job (scripts/launchd/; user 27 Oct):
+                                                                with DF not running, probe; a steam.exe that misses two
+                                                                probes 30 s apart is ended (--recover --no-relaunch) and
+                                                                a macOS notification says so. Steam is NOT reopened: a
+                                                                foreground launch at a random hour would steal focus, and
+                                                                with the wedged copy gone the user's next click works
 
 Checks
   wedged     --probe: steam.exe did not answer a hand-off within 20 s            -> exit 1
@@ -213,7 +219,38 @@ def recover(force: bool, relaunch: bool) -> int:
     return 1
 
 
+def notify(msg: str) -> None:
+    subprocess.run(["osascript", "-e", f'display notification "{msg}" with title "Steam watchdog"'],
+                   capture_output=True, timeout=10)
+
+
+def watchdog() -> int:
+    """one launchd tick: one log line, and a recovery only for a steam.exe that misses two probes"""
+    st = state()
+    stamp = f"{datetime.now():%Y-%m-%d %H:%M:%S}"
+    if not st["steam"]:
+        print(f"{stamp} steam not running")
+        return 0
+    if df_running(st["rows"]):
+        print(f"{stamp} skipped: Dwarf Fortress is running")
+        return 0
+    answered = probe()
+    if answered is None:
+        time.sleep(30)
+        answered = probe()
+    if answered is not None:
+        print(f"{stamp} ok: steam.exe pid {st['steam'][0]['pid']} answered in {answered} s")
+        return 0
+    print(f"{stamp} WEDGED: steam.exe pid {st['steam'][0]['pid']} missed two hand-offs 30 s apart; recovering", flush=True)
+    rc = recover(force=False, relaunch=False)
+    notify("Steam had stopped answering and was shut down. Open Steam again to use it." if rc == 0
+           else f"Steam had stopped answering; recovery returned {rc}. See DwarfCron data/logs/steam-watchdog.log")
+    return rc
+
+
 def main() -> int:
+    if "--watchdog" in sys.argv:
+        return watchdog()
     if "--recover" in sys.argv:
         return recover("--force" in sys.argv, "--no-relaunch" not in sys.argv)
     now = datetime.now()
