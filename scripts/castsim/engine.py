@@ -41,8 +41,11 @@ def is_water(nm): return nm.startswith(WATER_PREFIX)
 
 
 class Engine:
-    def __init__(self, raws: Raws | None = None, align=None, classes=('natural',)):
+    def __init__(self, raws: Raws | None = None, align=None, classes=('natural',), no_override=frozenset()):
         self.R = raws or Raws()
+        # tokens classified from the raws alone: DF's dumped reading (dfread) is of vanilla's creature, so a creature a
+        # mod edits must not take it (df-harmonize's tool-pools lens; both sides of its before/after comparison)
+        self.no_override = set(no_override)
         self.align = align or {'good': False, 'evil': False}
         self.classes = set(classes)
         self._class = {}
@@ -129,7 +132,7 @@ class Engine:
         self.extinct_fix(tok, out)                                                                    # V7.EXTINCT.model (sw:14403)
         out['civ'] = self.is_civ(c, out)                                                              # V7.isCivRaw (sw:2282)
         out['locked'] = out['eco'] not in self.classes
-        ov = dfread.classify_overrides(tok)   # DF's own reading wins where it was dumped (user 20 Oct; castsim.dfread)
+        ov = {} if tok in self.no_override else dfread.classify_overrides(tok)   # DF's own reading wins where it was dumped (user 20 Oct; castsim.dfread)
         if ov:
             if not out['gameVermin']: ov['category'] = ov['role']
             out.update(ov)

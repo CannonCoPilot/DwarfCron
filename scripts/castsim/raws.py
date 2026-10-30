@@ -67,6 +67,26 @@ AGG = {
 DERIVED = {'STANDARD_GRAZER': ['GRAZER'], 'TRAINABLE': ['TRAINABLE_WAR', 'TRAINABLE_HUNTING'],
            'AQUATIC': ['CANNOT_BREATHE_AIR', 'CAN_BREATHE_WATER'], 'AMPHIBIOUS': ['CAN_BREATHE_WATER']}
 TOKEN = re.compile(r'\[([^\]]+)\]')
+ARG = re.compile(r'!ARG(\d+)')
+
+
+def _subst(var, args):
+    """A variation's tokens with !ARGn replaced by APPLY_CREATURE_VARIATION's n-th argument (DF's rule; vanilla's own
+    variations take none, mods' do: [APPLY_CREATURE_VARIATION:V:4] with [CV_NEW_TAG:FREQUENCY:!ARG1])."""
+    if not args:
+        return var
+    def rep(m):
+        n = int(m.group(1))
+        return args[n - 1] if 0 < n <= len(args) else m.group(0)
+    return [[ARG.sub(rep, x) for x in v] for v in var]
+
+
+def _int(x, default=None):
+    """An integer raw argument; a malformed one (a mod's typo, an unfilled !ARGn) keeps the default."""
+    try:
+        return int(x)
+    except (TypeError, ValueError):
+        return default
 
 
 def _blocks(objdirs):
@@ -94,6 +114,29 @@ class Raws:
         self.src = _blocks([DF / 'vanilla_creatures/objects', DF / 'vanilla_creatures_extinct/objects'])
         self.var = _variations()
 
+    def overlay(self, ops):
+        """A copy with a mod's creature edits applied in its load order, as DF applies them: a define replaces (DF
+        aborts world creation on a second define without a cut, so a mod's define is new or follows its own cut), a
+        select appends its tokens to the creature's list (rig, df-harmonize lens 10 assumption c), a cut removes the
+        creature. ops: [{'op': define|select|cut, 'otype': CREATURE|CREATURE_VARIATION, 'tok': id,
+        'toks': [[TAG, arg, ...], ...], 'file': name}]. Used by df-harmonize's tool-pools lens."""
+        r = copy.copy(self)
+        r.src, r.var = dict(self.src), dict(self.var)
+        for o in ops:
+            if o.get('otype', 'CREATURE') == 'CREATURE_VARIATION':
+                if o['op'] == 'define': r.var[o['tok']] = [list(t) for t in o['toks']]
+                elif o['op'] == 'select' and o['tok'] in r.var: r.var[o['tok']] = r.var[o['tok']] + [list(t) for t in o['toks']]
+                elif o['op'] == 'cut': r.var.pop(o['tok'], None)
+                continue
+            if o['op'] == 'define':
+                r.src[o['tok']] = {'toks': [list(t) for t in o['toks']], 'file': o.get('file', ''), 'extinct': False}
+            elif o['op'] == 'select' and o['tok'] in r.src:
+                b = r.src[o['tok']]
+                r.src[o['tok']] = dict(b, toks=b['toks'] + [list(t) for t in o['toks']])
+            elif o['op'] == 'cut':
+                r.src.pop(o['tok'], None)
+        return r
+
     @functools.lru_cache(maxsize=None)
     def tokens(self, tok):
         """the compiled token list of a creature (COPY_TAGS_FROM and variations applied)"""
@@ -101,9 +144,10 @@ class Raws:
         out, removes = [], []
         for t in b['toks']:
             if t[0] == 'COPY_TAGS_FROM':
+                if len(t) < 2 or t[1] not in self.src: continue   # a source no loaded raw defines (another mod's)
                 out = copy.deepcopy(self.tokens(t[1]))
             elif t[0] == 'APPLY_CREATURE_VARIATION':
-                out = self._apply(out, self.var.get(t[1], []), removes); removes = []
+                out = self._apply(out, _subst(self.var.get(t[1], []), t[2:]), removes); removes = []
             elif t[0] == 'CV_REMOVE_TAG':
                 removes.append(t[1:])
             elif t[0] == 'APPLY_CURRENT_CREATURE_VARIATION':
@@ -144,17 +188,19 @@ class Raws:
             if k == 'BIOME':
                 for b in AGG.get(t[1], [t[1]]): biomes.add(b)
                 btoks.add(t[1])
-            elif k == 'FREQUENCY': vals['FREQUENCY'] = int(t[1])
-            elif k == 'CHANGE_FREQUENCY_PERC': vals['FREQ_PERC'] = int(t[1])
-            elif k == 'CLUSTER_NUMBER': vals['CLUSTER_NUMBER'] = (int(t[1]), int(t[2]))
-            elif k == 'UNDERGROUND_DEPTH': vals['UNDERGROUND_DEPTH'] = (int(t[1]), int(t[2]))
+            elif k == 'FREQUENCY': vals['FREQUENCY'] = _int(t[1], vals['FREQUENCY'])
+            elif k == 'CHANGE_FREQUENCY_PERC': vals['FREQ_PERC'] = _int(t[1], vals['FREQ_PERC'])
+            elif k == 'CLUSTER_NUMBER' and len(t) >= 3 and None not in (_int(t[1]), _int(t[2])):
+                vals['CLUSTER_NUMBER'] = (int(t[1]), int(t[2]))
+            elif k == 'UNDERGROUND_DEPTH' and len(t) >= 3 and None not in (_int(t[1]), _int(t[2])):
+                vals['UNDERGROUND_DEPTH'] = (int(t[1]), int(t[2]))
             elif k == 'GOBBLE_VERMIN_CLASS': gobble.add(t[1])
             elif k == 'CREATURE_CLASS': cclass.add(t[1])
-            elif k == 'CHANGE_BODY_SIZE_PERC': vals['SIZE_PERC'] = int(t[1])
-            elif k == 'GRAVITATE_BODY_SIZE': vals['GRAVITATE'] = int(t[1])
+            elif k == 'CHANGE_BODY_SIZE_PERC': vals['SIZE_PERC'] = _int(t[1], vals['SIZE_PERC'])
+            elif k == 'GRAVITATE_BODY_SIZE': vals['GRAVITATE'] = _int(t[1], vals['GRAVITATE'])
             for c in target():
-                if k == 'PETVALUE': vals['PETVALUE'][c] = int(t[1])
-                if k == 'BODY_SIZE' and len(t) >= 4: vals['BODY_SIZE'][c] = int(t[3])
+                if k == 'PETVALUE' and _int(t[1]) is not None: vals['PETVALUE'][c] = int(t[1])
+                if k == 'BODY_SIZE' and len(t) >= 4 and _int(t[3]) is not None: vals['BODY_SIZE'][c] = int(t[3])
             flags = [k] + DERIVED.get(k, [])
             cre.update(flags)
             for c in target():

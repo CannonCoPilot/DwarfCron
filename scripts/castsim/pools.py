@@ -7,6 +7,8 @@ import json
 import random
 from pathlib import Path
 
+from raws import LAND
+
 
 def depths_of(eng, tok):
     c = eng.R.creature(tok)
@@ -35,6 +37,31 @@ def from_dump(eng, path):
     return pops, st
 
 
+def candidate(eng, tok, spec):
+    """DF worldgen's stocking test for one creature, before its biome (see synthetic): natural, not civilised, a
+    megabeast or a night creature; SAVAGE ones and animal people only on a savage region. spec: {'savage': bool}."""
+    c = eng.R.creature(tok)
+    if 'DOES_NOT_EXIST' in c['flags'] or 'EQUIPMENT_WAGON' in c['flags']: return False
+    info = eng.classify(tok)
+    if info['eco'] != 'natural' or info['civ'] or info['mega'] or info['night']: return False
+    if (info['savage'] or info['ap']) and not spec.get('savage'): return False
+    return True
+
+
+def layers_of(eng, tok):
+    """The tool layers a creature's biomes can stock it in (synthetic's rules): land (a land biome, or an ocean coast,
+    which DF stocks on land-layer entries), water (a lake, river or pool) and cavern (a subterranean biome with a
+    cavern depth)."""
+    b = eng.R.creature(tok)['biomes']
+    out = set()
+    if any(x in LAND or x.startswith('OCEAN') for x in b): out.add('land')
+    if any(x.split('_')[0] in ('LAKE', 'RIVER', 'POOL') for x in b): out.add('water')
+    if any(x.startswith('SUBTERRANEAN') for x in b):
+        layer, deps = depths_of(eng, tok)
+        if layer == 'cavern' and deps: out.add('cavern')
+    return out
+
+
 def synthetic(eng, spec, seed=1):
     """DF worldgen, approximated: for each region biome of the embark, every natural creature whose BIOME admits it is a
     candidate (SAVAGE ones only on a savage region; GOOD/EVIL only on a region of their alignment; never a megabeast,
@@ -45,12 +72,9 @@ def synthetic(eng, spec, seed=1):
     rng = random.Random(seed)
     pops, idx = [], 0
     for tok in sorted(eng.R.src):
+        if not candidate(eng, tok, spec): continue
         c = eng.R.creature(tok)
-        if 'DOES_NOT_EXIST' in c['flags'] or 'EQUIPMENT_WAGON' in c['flags']: continue
         info = eng.classify(tok)
-        if info['eco'] != 'natural' or info['civ'] or info['mega'] or info['night']: continue
-        if info['savage'] and not spec.get('savage'): continue
-        if info['ap'] and not spec.get('savage'): continue
         b = c['biomes']
         p = min(1.0, max(0.05, c['freq'] / 100.0))
         def add(layer, n=1, deps=()):
