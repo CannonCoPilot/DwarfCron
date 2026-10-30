@@ -32,7 +32,9 @@ install)
     ts=$(date +%Y%m%d-%H%M%S); bk="$root/data/package-install/$ts-v8"; mkdir -p "$bk/devcopy/gui" "$bk/hack"
     # the dev copy: every seasonal-wildlife script in dfhack-config/scripts shadows the package's (DFHack reads it first)
     n=0
-    for f in "$DEV"/seasonal-wildlife*.lua "$DEV"/seasonal-wildlife-web.html "$DEV"/gui/seasonal-wildlife.lua; do
+    # internal/seasonal-wildlife/ too: its helper modules shadow the package's own (3 were left behind on 30 Oct)
+    for f in "$DEV"/seasonal-wildlife*.lua "$DEV"/seasonal-wildlife-web.html "$DEV"/gui/seasonal-wildlife.lua \
+             "$DEV"/internal/seasonal-wildlife/*.lua; do
         [ -f "$f" ] || continue
         rel="${f#$DEV/}"; mkdir -p "$bk/devcopy/$(dirname "$rel")"; mv "$f" "$bk/devcopy/$rel"; n=$((n+1))
     done
