@@ -9,7 +9,7 @@ from pathlib import Path
 
 import click
 
-from chronicler.config import LEGENDS_DIR
+from chronicler.config import DFHACK_HOST, LEGENDS_DIR
 
 
 def _run(coro):
@@ -722,7 +722,7 @@ def _get_controller(host):
 
 
 @control_group.command("status")
-@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+@click.option("--host", default=DFHACK_HOST, help="DFHack host: local = RPC to the CrossOver rig, else SSH to a VM")
 def control_status(host):
     """Show current game status (time, pause state, fortress info)."""
     ctrl = _get_controller(host)
@@ -738,7 +738,7 @@ def control_status(host):
 
 
 @control_group.command("pause")
-@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+@click.option("--host", default=DFHACK_HOST, help="DFHack host: local = RPC to the CrossOver rig, else SSH to a VM")
 def control_pause(host):
     """Pause the game."""
     ctrl = _get_controller(host)
@@ -749,7 +749,7 @@ def control_pause(host):
 
 
 @control_group.command("unpause")
-@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+@click.option("--host", default=DFHACK_HOST, help="DFHack host: local = RPC to the CrossOver rig, else SSH to a VM")
 def control_unpause(host):
     """Unpause the game."""
     ctrl = _get_controller(host)
@@ -760,7 +760,7 @@ def control_unpause(host):
 
 
 @control_group.command("step")
-@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+@click.option("--host", default=DFHACK_HOST, help="DFHack host: local = RPC to the CrossOver rig, else SSH to a VM")
 @click.option("--ticks", default=100, type=int, help="Ticks to advance (default: 100)")
 @click.option("--timeout", default=0, type=float,
               help="Max seconds to wait (0=auto-scale based on tick count)")
@@ -776,7 +776,7 @@ def control_step(host, ticks, timeout):
 
 
 @control_group.command("bridge")
-@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+@click.option("--host", default=DFHACK_HOST, help="DFHack host: local = RPC to the CrossOver rig, else SSH to a VM")
 @click.option("--setup-repeat", is_flag=True,
               help="Register bridge as DFHack repeating job (every 100 ticks)")
 def control_bridge(host, setup_repeat):
@@ -808,7 +808,7 @@ def control_bridge(host, setup_repeat):
 
 
 @control_group.command("save")
-@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+@click.option("--host", default=DFHACK_HOST, help="DFHack host: local = RPC to the CrossOver rig, else SSH to a VM")
 def control_save(host):
     """Quicksave the game (should be paused first)."""
     ctrl = _get_controller(host)
@@ -821,7 +821,7 @@ def control_save(host):
 
 
 @control_group.command("exec")
-@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+@click.option("--host", default=DFHACK_HOST, help="DFHack host: local = RPC to the CrossOver rig, else SSH to a VM")
 @click.argument("lua_code")
 def control_exec(host, lua_code):
     """Execute raw Lua code via dfhack-run and print the output.
@@ -843,7 +843,7 @@ def control_exec(host, lua_code):
 
 
 @control_group.command("citizens")
-@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+@click.option("--host", default=DFHACK_HOST, help="DFHack host: local = RPC to the CrossOver rig, else SSH to a VM")
 def control_citizens(host):
     """List all living citizens with name, profession, sex, and age."""
     ctrl = _get_controller(host)
@@ -863,7 +863,7 @@ def control_citizens(host):
 
 
 @control_group.command("speed")
-@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+@click.option("--host", default=DFHACK_HOST, help="DFHack host: local = RPC to the CrossOver rig, else SSH to a VM")
 @click.argument("level", type=int)
 def control_speed(host, level):
     """Set game speed (1=slow/10fps, 2=normal/50fps, 3=fast/100fps, 4=max)."""
@@ -873,7 +873,7 @@ def control_speed(host, level):
 
 
 @control_group.command("announce")
-@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+@click.option("--host", default=DFHACK_HOST, help="DFHack host: local = RPC to the CrossOver rig, else SSH to a VM")
 @click.option("--limit", default=20, type=int, help="Number of announcements to show")
 def control_announce(host, limit):
     """Show recent game announcements/log entries."""
@@ -888,7 +888,7 @@ def control_announce(host, limit):
 
 
 @control_group.command("probe")
-@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+@click.option("--host", default=DFHACK_HOST, help="DFHack host: local = RPC to the CrossOver rig, else SSH to a VM")
 @click.argument("path")
 def control_probe(host, path):
     """Introspect a df.global path — show type and fields.
@@ -912,7 +912,7 @@ def control_probe(host, path):
 
 
 @control_group.command("fields")
-@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+@click.option("--host", default=DFHACK_HOST, help="DFHack host: local = RPC to the CrossOver rig, else SSH to a VM")
 @click.argument("path")
 def control_fields(host, path):
     """Enumerate fields of a DF object with types and sample values.
@@ -943,7 +943,7 @@ def control_fields(host, path):
 
 
 @control_group.command("stream")
-@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+@click.option("--host", default=DFHACK_HOST, help="DFHack host: local = RPC to the CrossOver rig, else SSH to a VM")
 @click.option("--ticks", default=100, type=int,
               help="Ticks per step (default: 100, ~2 in-game hours)")
 @click.option("--cycles", default=10, type=int,

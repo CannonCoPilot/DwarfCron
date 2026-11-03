@@ -2,7 +2,7 @@
 # ===========================================================================
 # cx-config.sh — shared configuration for the CrossOver DF rig
 # ===========================================================================
-# Sourced by cx-lifecycle.sh. The VM counterpart is vm-config.sh.
+# Sourced by cx-lifecycle.sh. (The UTM VM rig and its vm-*.sh scripts were retired 2 Nov 2026: CrossOver only.)
 # ===========================================================================
 
 # --- CrossOver ------------------------------------------------------------

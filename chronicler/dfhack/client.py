@@ -18,6 +18,7 @@ from typing import Optional
 
 from google.protobuf.message import Message as ProtoMessage
 
+from chronicler.config import DFHACK_HOST, DFHACK_PORT
 from chronicler.dfhack.proto import (
     BasicApi_pb2 as api,
     Basic_pb2 as basic,
@@ -43,14 +44,14 @@ class DFHackClient:
 
     Usage::
 
-        client = DFHackClient("192.168.64.3", 5000)
+        client = DFHackClient()   # DFHACK_HOST:DFHACK_PORT (the CrossOver rig)
         client.connect()
         info = client.get_world_info()
         units = client.list_units(sane=True)
         client.close()
     """
 
-    def __init__(self, host: str = "192.168.64.3", port: int = 5000,
+    def __init__(self, host: str = DFHACK_HOST, port: int = DFHACK_PORT,
                  timeout: float = 15.0):
         self.host = host
         self.port = port

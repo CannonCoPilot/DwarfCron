@@ -8,8 +8,13 @@ DB_DSN = os.environ.get(
     f"postgresql://jarvis:{PG_PASSWORD}@localhost:5432/chronicler",
 )
 
-DFHACK_HOST = os.environ.get("DFHACK_HOST", "192.168.64.3")
-DFHACK_PORT = int(os.environ.get("DFHACK_PORT", "5000"))
+# DF runs under CrossOver on this Mac (user 2 Nov 2026: the UTM Windows VM at 192.168.64.3 is gone). The harness rig's
+# DFHack listens on 127.0.0.1:5555; the user's own sessions on DFHack's default 5000 (DFHACK_PORT=5000 to reach them)
+DFHACK_HOST = os.environ.get("DFHACK_HOST", "127.0.0.1")
+DFHACK_PORT = int(os.environ.get("DFHACK_PORT", "5555"))
+DF_DIR = os.environ.get("DF_DIR", os.path.expanduser(
+    "~/Library/Application Support/CrossOver/Bottles/Win10/drive_c/Program Files (x86)/Steam/steamapps/common/"
+    "Dwarf Fortress"))
 
 # Bridge: PowerShell HTTP server on DF machine serving chronicler-state.json
 # Used when RFR is unavailable (DFHack 53.10-r1 — no RemoteFortressReader)

@@ -1,6 +1,10 @@
 """Game controller — pause/unpause/step/status/bridge via DFHack.
 
-Uses SSH + dfhack-run.exe as transport (the only method that works reliably
+Local host (the default since 2 Nov 2026, DF under CrossOver on this Mac): DFHack's TCP RPC RunCommand, the transport
+the cx-lifecycle rig uses every day, and the bridge JSON read straight from the DF folder. The notes below are about a
+REMOTE Windows VM, kept for a host that is not local.
+
+Remote: SSH + dfhack-run.exe as transport (the only method that works reliably
 on DFHack 53.x under Prism/ARM emulation). TCP RPC's CoreRunCommand hangs
 because the CoreSuspender is never acquired from the network thread.
 
@@ -19,8 +23,13 @@ import logging
 import shlex
 import subprocess
 import time
+from pathlib import Path
+
+from chronicler.config import DF_DIR, DFHACK_HOST, DFHACK_PORT
 
 log = logging.getLogger(__name__)
+
+_LOCAL_HOSTS = {'127.0.0.1', 'localhost', '::1'}
 
 # Path to dfhack-run.exe on the Windows VM (root DF directory, NOT hack/)
 _DFHACK_RUN = (
@@ -38,18 +47,20 @@ class GameController:
 
     Usage::
 
-        ctrl = GameController(host="192.168.64.3")
+        ctrl = GameController()   # DFHACK_HOST:DFHACK_PORT, the CrossOver rig
         ctrl.pause()
         status = ctrl.get_status()
         ctrl.unpause()
         ctrl.step(100)  # advance 100 ticks then pause
     """
 
-    def __init__(self, host: str = "192.168.64.3",
+    def __init__(self, host: str = DFHACK_HOST, port: int = DFHACK_PORT,
                  ssh_key: str = "~/.ssh/df-vm",
                  ssh_user: str = "Jarvis",
                  ssh_timeout: int = 10):
         self._host = host
+        self._port = port
+        self._local = host in _LOCAL_HOSTS
         self._ssh_key = ssh_key
         self._ssh_user = ssh_user
         self._ssh_timeout = ssh_timeout
@@ -94,6 +105,15 @@ class GameController:
         except FileNotFoundError:
             raise ControllerError("ssh binary not found")
 
+    def _rpc(self, command: str, *args: str, timeout: float | None = None) -> str:
+        """Run a DFHack console command over local RPC and return its text output."""
+        from chronicler.dfhack.client import DFHackClient, DFHackError
+        try:
+            with DFHackClient(self._host, self._port, timeout=timeout or self._ssh_timeout) as c:
+                return "\n".join(c.run_command(command, *args)).strip()
+        except (OSError, DFHackError) as e:
+            raise ControllerError(f"DFHack RPC {self._host}:{self._port} '{command}' failed: {e}") from e
+
     def _lua(self, code: str) -> str:
         """Execute a Lua snippet via SSH + PowerShell + dfhack-run.
 
@@ -101,6 +121,8 @@ class GameController:
         single quotes in the Lua code are doubled ('') per PowerShell
         escaping rules for single-quoted strings.
         """
+        if self._local:
+            return self._rpc('lua', code)
         # Escape single quotes for PowerShell single-quoted string
         escaped = code.replace("'", "''")
         ps_cmd = (
@@ -253,6 +275,8 @@ class GameController:
 
         Returns the dfhack-run output (bridge version info).
         """
+        if self._local:
+            return self._rpc('chronicler-bridge')
         ps_cmd = (
             f"powershell -Command "
             f"\"& '{_DFHACK_RUN}' chronicler-bridge\""
@@ -276,6 +300,16 @@ class GameController:
         Returns parsed dict or None on error. Uses base64 encoding
         to handle non-ASCII DF names (Windows-1252) cleanly over SSH.
         """
+        if self._local:
+            try:
+                raw = (Path(DF_DIR) / 'chronicler-state.json').read_bytes()
+                try:
+                    return json.loads(raw.decode('utf-8'))
+                except UnicodeDecodeError:
+                    return json.loads(raw.decode('latin-1'))
+            except (OSError, json.JSONDecodeError) as e:
+                log.warning("Bridge data read failed: %s", e)
+                return None
         json_path = (
             r"C:\Program Files (x86)\Steam\steamapps\common"
             r"\Dwarf Fortress\chronicler-state.json"
@@ -310,6 +344,10 @@ class GameController:
 
         Returns True if the command completed without error.
         """
+        if self._local:
+            output = self._rpc('quicksave', timeout=30)
+            log.info("Quicksave: %s", output or "done")
+            return True
         ps_cmd = (
             f"powershell -Command "
             f"\"& '{_DFHACK_RUN}' quicksave\""
@@ -556,6 +594,9 @@ class GameController:
             dfhack_command("enable timestream")
             dfhack_command("timestream set fps 200")
         """
+        if self._local:
+            cmd, *args = shlex.split(command)
+            return self._rpc(cmd, *args, timeout=20)
         ps_cmd = (
             f"powershell -Command "
             f"\"& '{_DFHACK_RUN}' {command}\""

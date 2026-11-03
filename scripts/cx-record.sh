@@ -40,8 +40,9 @@ while [ $# -gt 0 ]; do
 done
 command -v ffmpeg >/dev/null || { echo "cx-record: ffmpeg not found (brew install ffmpeg)" >&2; exit 3; }
 
-# the DF window: id|pid|onscreen|owner|title|x,y,WxH (points)
-win=$(swift "$here/scripts/cx-winid.swift" 2>/dev/null | grep "onscreen=true" | grep "|Dwarf Fortress|" | head -1 || true)
+# the DF window: id|pid|onscreen|owner|title|x,y,WxH (points). Match the owner too: a Finder window
+# showing a "Dwarf Fortress" folder has the same title (2 Nov: recorded Finder instead of the game)
+win=$(swift "$here/scripts/cx-winid.swift" 2>/dev/null | grep "onscreen=true" | grep "|Dwarf Fortress.exe|Dwarf Fortress|" | head -1 || true)
 [ -n "$win" ] || { echo "cx-record: no on-screen Dwarf Fortress window" >&2; exit 4; }
 wid="${win%%|*}"; geo="${win##*|}"; wh="${geo#*,}"; wh="${wh#*,}"; ww="${wh%x*}"; whh="${wh#*x}"
 # ScreenCaptureKit captures the window itself (covered or not); built once
