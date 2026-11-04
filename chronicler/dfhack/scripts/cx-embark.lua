@@ -333,6 +333,33 @@ elseif cmd == 'place' then
     print(('placed %d,%d..%d,%d warn=%d,%d..%d,%d'):format(sx, sy, ex, ey,
         vs.warn_mm_startx, vs.warn_mm_starty, vs.warn_mm_endx, vs.warn_mm_endy))
 
+-- 4 Nov 2026: DF takes a map click's spot from the REAL pointer's hover (gps.mouse is SDL's every frame), and `place`'s
+-- in-call hover write stopped taking on this rig (the click landed on the parked pointer's tile: "Cannot embark on
+-- another site"). So move the MAP, not the pointer: the hover square keeps a fixed offset from the view centre for a
+-- parked pointer, so re-centre the view by target minus hover, let a frame draw, read, and click where DF hovers.
+elseif cmd == 'aim' then
+    local vs = need(df.viewscreen_choose_start_sitest, 'choose_start_site')
+    if not vs.choosing_embark then qerror('aim needs placement mode (click Embark first)') end
+    local tx, ty = tonumber(args[2]), tonumber(args[3])
+    if not tx or not ty then qerror('usage: cx-embark aim <mm_x> <mm_y>') end
+    local l = vs.location
+    local dx, dy = tx - l.embark_pos_min.x, ty - l.embark_pos_min.y
+    vs.zoomed_in = true
+    vs.zoom_cent_x, vs.zoom_cent_y = vs.zoom_cent_x + dx, vs.zoom_cent_y + dy
+    print(('aimed: hover %d,%d -> want %d,%d; view centre now %d,%d'):format(l.embark_pos_min.x, l.embark_pos_min.y,
+        tx, ty, vs.zoom_cent_x, vs.zoom_cent_y))
+
+elseif cmd == 'click' then
+    local vs = need(df.viewscreen_choose_start_sitest, 'choose_start_site')
+    local l = vs.location
+    -- the click must hit the map pane (a parked or absent pointer reads -1); DF takes the spot from the last frame's
+    -- hover, which `aim` put on the target
+    -- DF reads the button in its own frame (simulateInput's flag is undone before that): set it and let the next frame
+    -- consume it (rig 4 Nov: mouse_lbut back to 0 a frame later); never the _down flag, which would stay held
+    df.global.enabler.tracking_on = 1
+    df.global.enabler.mouse_lbut = 1
+    print(('clicked at hover %d,%d'):format(l.embark_pos_min.x, l.embark_pos_min.y))
+
 elseif cmd == 'site' then
     if not dfhack.isMapLoaded() then qerror('site needs a loaded fort') end
     local site = df.world_site.find(df.global.plotinfo.site_id)
@@ -459,37 +486,72 @@ elseif cmd == 'civ' then
     print(('civ selected %s entity %d index %d sites %d'):format(want, e.id, hit, vs.start_civ_site_num[hit] or -1))
 
 elseif cmd == 'home' then
-    -- the civ's home site (its first site) and the nearest region tile to it that is free of sites and shares its
-    -- biome type, so the fort's food path is the civ's own start biome
-    local want = args[2] or qerror('usage: cx-embark home <ENTITY_CODE> [radius=6]')
-    local R = tonumber(args[3]) or 6
+    -- the civ's home site (its first site) and the nearest region tile to it that shares its biome type and whose
+    -- embark square (offset 6,6, size 4 -- cx-lifecycle's defaults) overlaps no site's footprint (a site can reach
+    -- past the tile its has_site flag marks; DF refuses an embark on one). On the site screen the civ is the one
+    -- selected (several civs share an entity: dwarves); elsewhere the civ of that entity with the most sites.
+    local want = args[2] or qerror('usage: cx-embark home <ENTITY_CODE> [radius=8]')
+    local R = tonumber(args[3]) or 8
     local ent
-    for _, e in ipairs(df.global.world.entities.all) do
-        if e.type == df.historical_entity_type.Civilization and e.entity_raw.code == want then
-            if not ent or #e.site_links > #ent.site_links then ent = e end
+    local vs = dfhack.gui.getCurViewscreen(true)
+    if df.viewscreen_choose_start_sitest:is_instance(vs) and vs.start_civ[vs.selected_civ]
+        and vs.start_civ[vs.selected_civ].entity_raw.code == want then
+        ent = vs.start_civ[vs.selected_civ]
+    end
+    if not ent then
+        for _, e in ipairs(df.global.world.entities.all) do
+            if e.type == df.historical_entity_type.Civilization and e.entity_raw.code == want then
+                if not ent or #e.site_links > #ent.site_links then ent = e end
+            end
         end
     end
     if not ent then qerror('no civilization ' .. want) end
     local home
-    for _, s in ipairs(df.global.world.world_data.sites) do
+    local sites = df.global.world.world_data.sites
+    for _, s in ipairs(sites) do
         if s.civ_id == ent.id and (not home or s.id < home.id) then home = s end
     end
     if not home then qerror(('%s (entity %d) holds no site'):format(want, ent.id)) end
     local wd = df.global.world.world_data
     local hx, hy = home.pos.x, home.pos.y
     local okb, hb = pcall(dfhack.maps.getBiomeType, hx, hy)
-    local best, bd
+    local function clear(x, y)                     -- the 4x4 square at offset 6,6, one mid-level tile of margin
+        local x0, y0, x1, y1 = x * 16 + 5, y * 16 + 5, x * 16 + 10, y * 16 + 10
+        for _, s in ipairs(sites) do
+            if s.global_max_x >= x0 and s.global_min_x <= x1 and s.global_max_y >= y0 and s.global_min_y <= y1 then
+                return false
+            end
+        end
+        return true
+    end
+    local cand = {}
     for dy = -R, R do for dx = -R, R do
         local x, y = hx + dx, hy + dy
         if x >= 0 and y >= 0 and x < wd.world_width and y < wd.world_height and (dx ~= 0 or dy ~= 0) then
-            local ok, e = pcall(dfhack.maps.getRegionBiome, x, y)
             local ok2, bt = pcall(dfhack.maps.getBiomeType, x, y)
-            if ok and e and ok2 and okb and bt == hb and not flag(e, 'has_site') then
-                local d = dx * dx + dy * dy
-                if not bd or d < bd then best, bd = {x, y}, d end
-            end
+            if ok2 and okb and bt == hb then cand[#cand + 1] = {x, y, dx * dx + dy * dy} end
         end
     end end
+    table.sort(cand, function(a, b) return a[3] < b[3] end)
+    -- DF refuses a square "entirely on water or mountains": a mountain-home civ (dwarves) embarks on the nearest
+    -- clear land tile instead
+    local function landok(bt)
+        local n = df.biome_type[bt] or ''
+        return n ~= 'MOUNTAIN' and not n:find('^OCEAN') and not n:find('^LAKE') and n ~= 'POOL_TEMPERATE_FRESHWATER'
+    end
+    if not landok(hb) then
+        cand = {}
+        for dy = -R, R do for dx = -R, R do
+            local x, y = hx + dx, hy + dy
+            if x >= 0 and y >= 0 and x < wd.world_width and y < wd.world_height and (dx ~= 0 or dy ~= 0) then
+                local ok2, bt = pcall(dfhack.maps.getBiomeType, x, y)
+                if ok2 and landok(bt) then cand[#cand + 1] = {x, y, dx * dx + dy * dy} end
+            end
+        end end
+        table.sort(cand, function(a, b) return a[3] < b[3] end)
+    end
+    local best
+    for _, c in ipairs(cand) do if clear(c[1], c[2]) then best = c; break end end
     print(('home %s entity %d site %d at %d,%d biome %s; pick %s'):format(want, ent.id, home.id, hx, hy,
         okb and df.biome_type[hb] or '?', best and (best[1] .. ',' .. best[2]) or 'none'))
 

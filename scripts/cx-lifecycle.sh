@@ -635,15 +635,35 @@ open_site_screen() {
         label="Folder: $world"
     fi
     click_when_drawn "Start new game in existing world" || err "title never showed 'Start new game in existing world'"
+    # 4 Nov 2026: with hundreds of worlds (457 save folders) 15 scrolls of 2 rows never reached a late row: scroll
+    # straight to the world's own row (region_choice[i].filename_noext), a few rows above it so it is drawn
+    cmd_lua "local t=dfhack.gui.getViewscreenByType(df.viewscreen_titlest,0) if t then for i=0,#t.region_choice-1 do if t.region_choice[i].filename_noext=='$world' then t.scroll_position_region_choice=math.max(0,i-3) break end end end" >/dev/null 2>&1
+    sleep 0.5
     local w=0
     until wait_drawn "$label" 2 >/dev/null; do
         w=$((w + 1))
         [ "$w" -gt 15 ] && err "world list never showed '$label' (scrolled down 15 times)"
-        cmd_lua 'local t=dfhack.gui.getViewscreenByType(df.viewscreen_titlest,0) if t then local n=#t.region_choice t.scroll_position_region_choice=math.min(math.max(n-1,0), t.scroll_position_region_choice+2) end' >/dev/null 2>&1
+        # the list may fill only after the first try: scroll straight to the world's row each time, else on by 2
+        cmd_lua "local t=dfhack.gui.getViewscreenByType(df.viewscreen_titlest,0) if t then local hit for i=0,#t.region_choice-1 do if t.region_choice[i].filename_noext=='$world' then hit=i break end end if hit then t.scroll_position_region_choice=math.max(0,hit-3) else local n=#t.region_choice t.scroll_position_region_choice=math.min(math.max(n-1,0), t.scroll_position_region_choice+2) end end" >/dev/null 2>&1
         sleep 0.5
     done
     cmd_ui click "$label" >/dev/null 2>&1; sleep 1
     wait_state screen viewscreen_choose_game_typest 90 || err "world did not load to the game-type screen (state: $(ui_state))"
+    # CX_EMBARK_CIV: the site screen's selected_civ is not what DF embarks with (rig 4 Nov: selected MOUNTAIN, embarked
+    # as elves, then goblins). With the world's raws loaded and before the site screen builds its list, make the
+    # target the only fortress-playable entity (CIV_CONTROLLABLE = SITE_CONTROLLABLE; in memory only, raws are
+    # re-read at every world load)
+    if [ -n "${CX_EMBARK_CIV:-}" ]; then
+        rd=$(cmd_lua "local n,k,was=0,0,nil for _,r in ipairs(df.global.world.raws.entities.all) do if r.code=='$CX_EMBARK_CIV' then was=r.flags.CIV_CONTROLLABLE r.flags.CIV_CONTROLLABLE=true k=k+1 elseif r.flags.CIV_CONTROLLABLE then r.flags.CIV_CONTROLLABLE=false n=n+1 end end print(('only %s playable: %d raw(s) kept, %d switched off; it was playable before: %s'):format('$CX_EMBARK_CIV',k,n,tostring(was)))" 2>&1 | tr -d "\r" | tail -1)
+        log "$rd"
+        case "$rd" in "only "*" 1 raw(s) kept"*) ;; *) err "could not make $CX_EMBARK_CIV the only playable civ: $rd";; esac
+    fi
+    # CX_NO_HOOKS="k1 k2": drop those DFHack onStateChange hooks before the map loads (a mod script's auto-start; for
+    # isolating a crash at map load, 4 Nov 2026)
+    local hk
+    for hk in ${CX_NO_HOOKS:-}; do
+        log "$(cmd_lua "dfhack.onStateChange['$hk']=nil print('hook $hk dropped')" 2>&1 | tr -d "\r" | tail -1)"
+    done
     if [ "$nsame" != 1 ]; then
         local got; got=$(cmd_lua "print(df.global.world.cur_savegame.save_dir)" 2>/dev/null | tr -d "\r" | tail -1)
         [ "$got" = "$world" ] || log "WARNING: shared name '$wname': the loaded world reports folder '$got' (wanted '$world')"
@@ -740,10 +760,42 @@ cmd_embark() {
     # no frontmost window: the pointer-driven loop fought whoever was using the Mac and failed the FPS6 pilot twice
     # (29 Sep 2026). The click embarks: the warnings dialog when the area has any (Confirm), else preparation.
     local tx=$((rx * 16 + ox)) ty=$((ry * 16 + oy))
-    rd=$(cmd_cmd cx-embark place "$tx" "$ty" 2>/dev/null | tr -d "\r" | tail -1)
+    # 4 Nov 2026: the in-call hover write (`place`) stopped taking on this rig -- the click landed on the parked
+    # pointer's tile. Move the map under the pointer instead (`aim`: view centre += target - hover), check the hover
+    # a frame later, then set the click for DF's next frame (`click`). No pointer, no frontmost window.
+    # A map click needs the real pointer over DF (with another app in front gps.mouse reads -1 and DF drops the click;
+    # 4 Nov 2026). Never take the Mac from a person: wait until no keyboard or mouse input for CX_IDLE_S seconds
+    # (default 300), remember the front app, bring DF forward and park the pointer on its map, and give the front
+    # app back once the embark is done. CX_POINTER=0 skips this (the pointer already rests on DF).
+    local prev_app=""
+    if [ "${CX_POINTER:-1}" = 1 ] && [ "$(cmd_lua 'print(df.global.gps.mouse_x)' 2>/dev/null | tr -d "\r" | tail -1)" = "-1" ]; then
+        local idle need="${CX_IDLE_S:-300}" waited=0
+        while :; do
+            idle=$(ioreg -c IOHIDSystem | awk '/HIDIdleTime/ {print int($NF/1000000000); exit}')
+            [ "${idle:-0}" -ge "$need" ] && break
+            [ "$waited" = 0 ] && log "waiting for the Mac to be idle ${need}s before taking the pointer (idle ${idle}s)"
+            waited=1; sleep 20
+        done
+        prev_app=$(osascript -e 'tell application "System Events" to get name of first application process whose frontmost is true' 2>/dev/null)
+        "$SCRIPT_DIR/../.venv/bin/python" "$SCRIPT_DIR/cx-mouse.py" activate >/dev/null 2>&1
+        sleep 1
+        "$SCRIPT_DIR/../.venv/bin/python" "$SCRIPT_DIR/cx-mouse.py" move 695 584 >/dev/null 2>&1
+        sleep 1
+        log "pointer parked on DF's map (front app was ${prev_app:-?}; mouse now $(cmd_lua 'print(df.global.gps.mouse_x..","..df.global.gps.mouse_y)' 2>/dev/null | tr -d "\r" | tail -1))"
+    fi
+    local a
+    for a in 1 2 3 4; do
+        cmd_cmd cx-embark aim "$tx" "$ty" >/dev/null 2>&1
+        sleep 1
+        rd=$(cmd_cmd cx-embark read 2>/dev/null | tr -d "\r" | tail -1)
+        case "$rd" in *"mm_min=$tx,$ty "*) break ;; esac
+        [ "$a" = 4 ] && err "could not aim the square at $tx,$ty: $rd"
+    done
+    rd=$(cmd_cmd cx-embark click 2>/dev/null | tr -d "\r" | tail -1)
     log "$rd"
-    case "$rd" in placed*) ;; *) err "place failed: $rd (state: $(ui_state))";; esac
     sleep 1
+    # the pointer was only needed for that click: give the person's app back
+    [ -n "$prev_app" ] && osascript -e "tell application \"$prev_app\" to activate" >/dev/null 2>&1
     if [ "$(ui_get screen)" != "viewscreen_setupdwarfgamest" ]; then
         rd=$(cmd_cmd cx-embark read 2>/dev/null | tr -d "\r" | tail -1)
         case "$rd" in
