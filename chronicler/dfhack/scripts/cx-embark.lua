@@ -433,6 +433,81 @@ elseif cmd == 'facts' then
     print(('units\tactive=%d wild_gated=%d'):format(#df.global.world.units.active, wild))
     print(('clock\tyear=%d tick=%d season=%d'):format(df.global.cur_year, df.global.cur_year_tick, df.global.cur_season))
 
+-- 4 Nov 2026 (civ mega-mod, fortress-playable gate): embark as a chosen civilization. The site screen lists the
+-- playable civs in start_civ and embarks as start_civ[selected_civ] (df.d_interface.xml), so choosing one is a field
+-- write, no pointer. A civ's code is its entity raw's (RL_ARGONI, MOUNTAIN ...).
+elseif cmd == 'civs' then
+    local vs = need(df.viewscreen_choose_start_sitest, 'choose_start_site')
+    for i, e in ipairs(vs.start_civ) do
+        local race = df.creature_raw.find(e.race)
+        print(('%d\t%s\t%d\t%s\tsites=%d%s'):format(i, e.entity_raw.code, e.id, race and race.creature_id or '?',
+            vs.start_civ_site_num[i] or -1, i == vs.selected_civ and '\tselected' or ''))
+    end
+
+elseif cmd == 'civ' then
+    local vs = need(df.viewscreen_choose_start_sitest, 'choose_start_site')
+    local want = args[2] or qerror('usage: cx-embark civ <ENTITY_CODE>')
+    local hit
+    for i, e in ipairs(vs.start_civ) do
+        if e.entity_raw.code == want and (not hit or (vs.start_civ_site_num[i] or 0) > (vs.start_civ_site_num[hit] or 0)) then
+            hit = i                                 -- several civs of one entity (Wild elves): the one with most sites
+        end
+    end
+    if not hit then qerror(('no playable civ %s on this world (%d listed)'):format(want, #vs.start_civ)) end
+    vs.selected_civ = hit
+    local e = vs.start_civ[hit]
+    print(('civ selected %s entity %d index %d sites %d'):format(want, e.id, hit, vs.start_civ_site_num[hit] or -1))
+
+elseif cmd == 'home' then
+    -- the civ's home site (its first site) and the nearest region tile to it that is free of sites and shares its
+    -- biome type, so the fort's food path is the civ's own start biome
+    local want = args[2] or qerror('usage: cx-embark home <ENTITY_CODE> [radius=6]')
+    local R = tonumber(args[3]) or 6
+    local ent
+    for _, e in ipairs(df.global.world.entities.all) do
+        if e.type == df.historical_entity_type.Civilization and e.entity_raw.code == want then
+            if not ent or #e.site_links > #ent.site_links then ent = e end
+        end
+    end
+    if not ent then qerror('no civilization ' .. want) end
+    local home
+    for _, s in ipairs(df.global.world.world_data.sites) do
+        if s.civ_id == ent.id and (not home or s.id < home.id) then home = s end
+    end
+    if not home then qerror(('%s (entity %d) holds no site'):format(want, ent.id)) end
+    local wd = df.global.world.world_data
+    local hx, hy = home.pos.x, home.pos.y
+    local okb, hb = pcall(dfhack.maps.getBiomeType, hx, hy)
+    local best, bd
+    for dy = -R, R do for dx = -R, R do
+        local x, y = hx + dx, hy + dy
+        if x >= 0 and y >= 0 and x < wd.world_width and y < wd.world_height and (dx ~= 0 or dy ~= 0) then
+            local ok, e = pcall(dfhack.maps.getRegionBiome, x, y)
+            local ok2, bt = pcall(dfhack.maps.getBiomeType, x, y)
+            if ok and e and ok2 and okb and bt == hb and not flag(e, 'has_site') then
+                local d = dx * dx + dy * dy
+                if not bd or d < bd then best, bd = {x, y}, d end
+            end
+        end
+    end end
+    print(('home %s entity %d site %d at %d,%d biome %s; pick %s'):format(want, ent.id, home.id, hx, hy,
+        okb and df.biome_type[hb] or '?', best and (best[1] .. ',' .. best[2]) or 'none'))
+
+elseif cmd == 'fortciv' then
+    if not dfhack.isMapLoaded() then qerror('fortciv needs a loaded fort') end
+    local civ = df.historical_entity.find(df.global.plotinfo.civ_id)
+    local grp = df.historical_entity.find(df.global.plotinfo.group_id)
+    local races = {}
+    for _, u in ipairs(df.global.world.units.active) do
+        if dfhack.units.isCitizen(u) then
+            local r = df.creature_raw.find(u.race).creature_id
+            races[r] = (races[r] or 0) + 1
+        end
+    end
+    local rl = {}; for k, n in pairs(races) do rl[#rl+1] = k .. '=' .. n end; table.sort(rl)
+    print(('fortciv %s entity %d group %d citizens %s'):format(civ and civ.entity_raw.code or '?', df.global.plotinfo.civ_id,
+        df.global.plotinfo.group_id, table.concat(rl, ' ')))
+
 else
-    print([[usage: cx-embark presets | params <i> <title> <seed> [end_year] | pset k=v.. | pdump [world] | mods | modadd <id> [ver] | survey [filter] | center <rx> <ry> | read | worlds | facts]])
+    print([[usage: cx-embark presets | params <i> <title> <seed> [end_year] | pset k=v.. | pdump [world] | mods | modadd <id> [ver] | survey [filter] | center <rx> <ry> | read | worlds | facts | civs | civ <CODE> | home <CODE> [r] | fortciv]])
 end

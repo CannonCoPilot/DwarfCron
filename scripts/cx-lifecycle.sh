@@ -292,26 +292,24 @@ cmd_deploy_tool() {
     n=$(cd "$src" && find . -name '*.lua' | wc -l | tr -d ' ')
     log "deployed $n lua file(s) from $src (tree preserved)"
     (cd "$src" && find . -name '*.lua' | sed 's|^\./|  |')
-    # seasonal-wildlife: every script of the tool is checked in place, byte for byte. v7.1 (1 Oct 2026) added a fifth,
-    # seasonal-wildlife-controls.lua, which the web server reqscripts at load: a tree without it serves no page.
+    # seasonal-wildlife: every file of the tool in the source tree is checked in place, byte for byte (27 Oct: the beta
+    # prep moved the helpers under internal/seasonal-wildlife/; a fixed list would silently stop checking them).
     if [ -f "$src/seasonal-wildlife.lua" ]; then
-        local f bad=0
-        local files="seasonal-wildlife.lua gui/seasonal-wildlife.lua seasonal-wildlife-web.lua seasonal-wildlife-web.html"
-        if grep -q "reqscript('seasonal-wildlife-controls')" "$src/seasonal-wildlife-web.lua" 2>/dev/null; then
-            files="$files seasonal-wildlife-controls.lua"
-        fi
-        # v7.1 aquarium (2 Oct 2026): the lens/waves overlay and its in-game texture builder, when the tree ships them
-        for f in seasonal-wildlife-aquarium.lua seasonal-wildlife-aquarium-gfx.lua; do
-            [ -f "$src/$f" ] && files="$files $f"
-        done
+        local f bad=0 files
+        files=$(cd "$src" && find . -type f \( -name 'seasonal-wildlife*' -o -path './internal/seasonal-wildlife/*' \) | sed 's|^\./||' | sort)
         for f in $files; do
-            if [ ! -f "$src/$f" ]; then
-                case "$f" in seasonal-wildlife-web*) continue ;; esac   # releases before v6.8 ship no companion
-                echo "  MISSING in the source tree: $f" >&2; bad=1
-            elif ! cmp -s "$src/$f" "$dest/$f"; then
+            if ! cmp -s "$src/$f" "$dest/$f"; then
                 echo "  NOT DEPLOYED (differs or absent): $f" >&2; bad=1
             else
                 echo "  ok $f"
+            fi
+        done
+        # a tool file in dest that the source tree no longer ships (the old top-level helpers) would shadow nothing but
+        # trips the tool's stale-copy warning: move it aside, never delete
+        local old
+        for old in seasonal-wildlife-controls.lua seasonal-wildlife-aquarium-gfx.lua; do
+            if [ -f "$dest/$old" ] && [ ! -f "$src/$old" ]; then
+                mv "$dest/$old" "$dest/$old.sw-stale" && echo "  moved aside (no longer shipped): $old -> $old.sw-stale"
             fi
         done
         [ "$bad" -eq 0 ] || err "deploy-tool: seasonal-wildlife tree incomplete in $dest"
@@ -704,6 +702,18 @@ cmd_embark() {
         cmd_cmd startdwarf "$sd" 2>/dev/null | tr -d "\r" | tail -1 | sed 's/^/[cx-lifecycle] /'
     fi
     open_site_screen "$world"
+    # CX_EMBARK_CIV=<ENTITY_CODE>: embark as that civilization (the site screen's start_civ list; 4 Nov 2026, civ
+    # mega-mod fortress-playable gate). Without it DF's own default civ is used, as before.
+    if [ -n "${CX_EMBARK_CIV:-}" ]; then
+        rd=$(cmd_cmd cx-embark civ "$CX_EMBARK_CIV" 2>&1 | tr -d "\r" | tail -1)
+        case "$rd" in "civ selected"*) log "$rd" ;; *) err "cannot embark as $CX_EMBARK_CIV: $rd";; esac
+        # rx ry = "home home": the nearest site-free tile sharing the biome of the civ's home site (its own start biome)
+        if [ "$rx" = "home" ]; then
+            rd=$(cmd_cmd cx-embark home "$CX_EMBARK_CIV" 2>&1 | tr -d "\r" | tail -1)
+            log "$rd"
+            case "$rd" in *"; pick "[0-9]*) rx=${rd##*pick }; ry=${rx#*,}; rx=${rx%,*} ;; *) err "no home tile for $CX_EMBARK_CIV: $rd";; esac
+        fi
+    fi
     cmd_cmd cx-embark center "$rx" "$ry" 2>/dev/null | tr -d "\r" | tail -1 | sed 's/^/[cx-lifecycle] /'
     sleep 1
     # Enter placement mode and PROVE it before any pointer click. The site-screen
@@ -748,6 +758,11 @@ cmd_embark() {
     cmd_ui pause >/dev/null
     rd=$(cmd_cmd cx-embark site 2>/dev/null | tr -d "\r" | tail -1)
     case "$rd" in *"mm_min=$tx,$ty "*) ;; *) err "the fort is not where it was placed (want $tx,$ty): $rd";; esac
+    if [ -n "${CX_EMBARK_CIV:-}" ]; then
+        rd=$(cmd_cmd cx-embark fortciv 2>&1 | tr -d "\r" | tail -1)
+        log "$rd"
+        case "$rd" in "fortciv $CX_EMBARK_CIV "*) ;; *) err "the fort is not $CX_EMBARK_CIV's: $rd";; esac
+    fi
     cmd_save "$name"
     log "embarked: world $world tile $rx,$ry size ${CX_EMBARK_SIZE:-4} -> save $name ($(ui_state))"
 }
