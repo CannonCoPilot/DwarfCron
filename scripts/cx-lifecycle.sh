@@ -648,12 +648,29 @@ open_site_screen() {
         sleep 0.5
     done
     cmd_ui click "$label" >/dev/null 2>&1; sleep 1
+    # 5 Nov 2026: a mods/ folder with the world's mod id and a higher compatible NUMERIC_VERSION makes DF ask "Newer
+    # compatible version of mod detected" (adopt_region). Always keep the world's own copy: "Don't update any".
+    local up
+    for up in 1 2 3 4 5 6 7 8 9 10; do
+        [ "$(ui_get screen)" = viewscreen_choose_game_typest ] && break
+        if wait_drawn "Newer compatible version" 2 >/dev/null; then
+            cmd_ui click "Don't update any" >/dev/null 2>&1 || cmd_ui click "Don't update" >/dev/null 2>&1
+            log "kept the world's own mod copies (Don't update any)"
+            sleep 2
+        fi
+    done
     wait_state screen viewscreen_choose_game_typest 90 || err "world did not load to the game-type screen (state: $(ui_state))"
     # CX_EMBARK_CIV: the site screen's selected_civ is not what DF embarks with (rig 4 Nov: selected MOUNTAIN, embarked
     # as elves, then goblins). With the world's raws loaded and before the site screen builds its list, make the
     # target the only fortress-playable entity (CIV_CONTROLLABLE = SITE_CONTROLLABLE; in memory only, raws are
     # re-read at every world load)
     if [ -n "${CX_EMBARK_CIV:-}" ]; then
+        # 7 Nov 2026 (v74 rig): the target must hold a site in this world. Made the only playable entity when none of
+        # its civilizations placed (FOREST on seed 1004 v74), DF's region update picks a random civ from an empty list
+        # and reads a null pointer (crash +0x106CA95 in fn 0x106bce0, called from viewscreen_update_regionst::logic)
+        rd=$(cmd_lua "local c=0 for _,e in ipairs(df.global.world.entities.all) do if e.type==df.historical_entity_type.Civilization and e.entity_raw and e.entity_raw.code=='$CX_EMBARK_CIV' and #e.site_links>0 then c=c+1 end end print('civs with sites: '..c)" 2>&1 | tr -d "\r" | tail -1)
+        log "$CX_EMBARK_CIV $rd"
+        case "$rd" in "civs with sites: "[1-9]*) ;; *) err "no $CX_EMBARK_CIV civilization holds a site in this world ($rd): embarking as it would crash DF";; esac
         rd=$(cmd_lua "local n,k,was=0,0,nil for _,r in ipairs(df.global.world.raws.entities.all) do if r.code=='$CX_EMBARK_CIV' then was=r.flags.CIV_CONTROLLABLE r.flags.CIV_CONTROLLABLE=true k=k+1 elseif r.flags.CIV_CONTROLLABLE then r.flags.CIV_CONTROLLABLE=false n=n+1 end end print(('only %s playable: %d raw(s) kept, %d switched off; it was playable before: %s'):format('$CX_EMBARK_CIV',k,n,tostring(was)))" 2>&1 | tr -d "\r" | tail -1)
         log "$rd"
         case "$rd" in "only "*" 1 raw(s) kept"*) ;; *) err "could not make $CX_EMBARK_CIV the only playable civ: $rd";; esac
@@ -768,7 +785,22 @@ cmd_embark() {
     # (default 300), remember the front app, bring DF forward and park the pointer on its map, and give the front
     # app back once the embark is done. CX_POINTER=0 skips this (the pointer already rests on DF).
     local prev_app=""
-    if [ "${CX_POINTER:-1}" = 1 ] && [ "$(cmd_lua 'print(df.global.gps.mouse_x)' 2>/dev/null | tr -d "\r" | tail -1)" = "-1" ]; then
+    # CX_EMBARK_PLACE=1 (5 Nov 2026): no pointer at all. With the real pointer NOT over DF (gps.mouse_x -1) nothing
+    # rewrites the hover each frame, so `place` (write the square + one synthetic map click) lands on the target -- the
+    # 4 Nov failure was a parked pointer over DF overwriting the hover. Never waits for an idle Mac. Refused (falls
+    # back to the pointer path below) when the pointer happens to be over DF.
+    if [ "${CX_EMBARK_PLACE:-0}" = 1 ] && [ "$(cmd_lua 'print(df.global.gps.mouse_x)' 2>/dev/null | tr -d "\r" | tail -1)" = "-1" ]; then
+        rd=$(cmd_cmd cx-embark place "$tx" "$ty" 2>/dev/null | tr -d "\r" | tail -1)
+        log "pointer-free: $rd"
+        sleep 1
+        if [ "$(ui_get screen)" != "viewscreen_setupdwarfgamest" ]; then   # no warnings: DF went straight to preparation
+            rd=$(cmd_cmd cx-embark read 2>/dev/null | tr -d "\r" | tail -1)
+            case "$rd" in *"mm_min=$tx,$ty "*) ;; *) err "pointer-free place did not take (want $tx,$ty): $rd" ;; esac
+        fi
+        CX_POINTER=0
+        local placed_free=1
+    fi
+    if [ -z "${placed_free:-}" ] && [ "${CX_POINTER:-1}" = 1 ] && [ "$(cmd_lua 'print(df.global.gps.mouse_x)' 2>/dev/null | tr -d "\r" | tail -1)" = "-1" ]; then
         local idle need="${CX_IDLE_S:-300}" waited=0
         while :; do
             idle=$(ioreg -c IOHIDSystem | awk '/HIDIdleTime/ {print int($NF/1000000000); exit}')
@@ -784,6 +816,7 @@ cmd_embark() {
         log "pointer parked on DF's map (front app was ${prev_app:-?}; mouse now $(cmd_lua 'print(df.global.gps.mouse_x..","..df.global.gps.mouse_y)' 2>/dev/null | tr -d "\r" | tail -1))"
     fi
     local a
+    if [ -z "${placed_free:-}" ]; then
     for a in 1 2 3 4; do
         cmd_cmd cx-embark aim "$tx" "$ty" >/dev/null 2>&1
         sleep 1
@@ -794,6 +827,7 @@ cmd_embark() {
     rd=$(cmd_cmd cx-embark click 2>/dev/null | tr -d "\r" | tail -1)
     log "$rd"
     sleep 1
+    fi
     # the pointer was only needed for that click: give the person's app back
     [ -n "$prev_app" ] && osascript -e "tell application \"$prev_app\" to activate" >/dev/null 2>&1
     if [ "$(ui_get screen)" != "viewscreen_setupdwarfgamest" ]; then
@@ -804,6 +838,16 @@ cmd_embark() {
         esac
     fi
     wait_state screen viewscreen_setupdwarfgamest 30 || err "Confirm did not open the preparation screen (state: $(ui_state))"
+    # CX_EMBARK_PREP_LUA=<file>: run that Lua on the preparation screen before Play now (the default embark list, read
+    # from viewscreen_setupdwarfgamest; v69 embark-supply check, 5 Nov 2026); output to CX_EMBARK_PREP_OUT.
+    # CX_EMBARK_PREP_HOLD=1: stop on the preparation screen instead of playing (probing; the caller leaves it).
+    if [ -n "${CX_EMBARK_PREP_LUA:-}" ]; then
+        sleep 2
+        "$CX_PYTHON" "$SCRIPT_DIR/cx-rpc.py" --port "$(live_port)" --timeout 60 --lua "$(cat "$CX_EMBARK_PREP_LUA")" \
+            > "${CX_EMBARK_PREP_OUT:-/dev/null}" 2>&1 || log "prep lua: non-zero exit"
+        log "prep lua ran ($(wc -l < "${CX_EMBARK_PREP_OUT:-/dev/null}" | tr -d ' ') lines)"
+    fi
+    [ -n "${CX_EMBARK_PREP_HOLD:-}" ] && { log "held on the preparation screen"; return 0; }
     click_when_drawn "Play now!" || err "no 'Play now!' on the preparation screen"
     wait_state map true "$CX_LOAD_TIMEOUT" || err "map never loaded (state: $(ui_state))"
     sleep 2; dismiss_okay
