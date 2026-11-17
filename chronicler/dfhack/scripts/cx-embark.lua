@@ -173,6 +173,33 @@ elseif cmd == 'mods' then
     for i, v in ipairs(vs.object_load_order_id) do m[#m + 1] = v.value .. '@' .. vs.object_load_order_numeric_version[i] end
     print(('mods %d: %s'):format(#m, table.concat(m, ' ')))
 
+elseif cmd == 'modonly' then
+    -- modonly [id ...]: drop every mod from the new world's load order except DF's own vanilla_* entries and the ids named
+    -- (16 Nov 2026: the new-world screen starts from the last load order used, which can hold the player's Workshop mods;
+    -- a test world must not). Dropped entries go back to the available column, as unticking does on the Mods screen.
+    local vs = need(df.viewscreen_new_regionst, 'new_region')
+    local keep = {}
+    for i = 2, #args do keep[args[i]] = true end
+    local function fields(kind)
+        return { id = vs[kind .. '_id'], numeric_version = vs[kind .. '_numeric_version'],
+            earliest_compat_numeric_version = vs[kind .. '_earliest_compat_numeric_version'], src_dir = vs[kind .. '_src_dir'],
+            name = vs[kind .. '_name'], displayed_version = vs[kind .. '_displayed_version'], mod_header = vs[kind .. '_mod_header'] }
+    end
+    local lo, avail = fields('object_load_order'), fields('available')
+    local dropped = {}
+    for i = #lo.id - 1, 0, -1 do
+        local id = lo.id[i].value
+        if not id:find('^vanilla_') and not keep[id] then
+            for k, vec in pairs(avail) do
+                local e = lo[k][i]
+                if type(e) == 'userdata' then vec:insert('#', e:new()) else vec:insert('#', e) end
+            end
+            for _, vec in pairs(lo) do vec:erase(i) end
+            table.insert(dropped, 1, id)
+        end
+    end
+    print(('modonly: dropped %d (%s); load order now %d'):format(#dropped, table.concat(dropped, ' '), #lo.id))
+
 elseif cmd == 'modadd' then
     -- modadd <id> [numeric_version]: tick a mod for the new world -- append it to the load order (last, so a graphics
     -- override wins over vanilla) and drop it from the available column, as the Mods screen and DFHack's

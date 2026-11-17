@@ -528,6 +528,12 @@ cmd_genworld() {
     click_when_drawn "Create new world" || err "title never showed 'Create new world'"
     wait_state screen viewscreen_new_regionst 20 || err "Create new world did not open (state: $(ui_state))"
     dismiss_okay
+    # CX_GENWORLD_ONLY=1: vanilla plus CX_GENWORLD_MODS and nothing else (the new-world screen starts from the last load
+    # order used, which can hold the player's Workshop mods)
+    if [ "${CX_GENWORLD_ONLY:-0}" = 1 ]; then
+        local mo; mo=$(cmd_cmd cx-embark modonly $(for m in ${CX_GENWORLD_MODS:-}; do echo "${m%@*}"; done) 2>&1 | tr -d "\r" | tail -1); log "$mo"
+        case "$mo" in modonly:*) ;; *) err "could not prune the load order: $mo";; esac
+    fi
     if [ -n "${CX_GENWORLD_MODS:-}" ]; then
         local m mid mver ml
         for m in $CX_GENWORLD_MODS; do
@@ -583,17 +589,17 @@ cmd_genworld() {
         [ -n "$crash" ] && [ "$crash" != "$crash0" ] && err "DF crashed during worldgen after ${waited}s (crash log $(basename "$crash"))"
         is_running || err "DF exited during worldgen after ${waited}s"
         scr=$(cmd_ui screen 2>/dev/null | tr -d "\r")
-        if echo "$scr" | grep -q "Keep world and return to main menu"; then
+        if grep -q "Keep world and return to main menu" <<< "$scr"; then
             cmd_ui click "Keep world and return to main menu" >/dev/null 2>&1
             break
         fi
-        if echo "$scr" | grep -q "ALLOW THIS REJECTION TYPE"; then
+        if grep -q "ALLOW THIS REJECTION TYPE" <<< "$scr"; then
             local kind; kind=$(echo "$scr" | grep -o '[A-Z][A-Z ]*REJECTION' | head -1)
             [ -n "$allowed" ] && [ "$allowed" != "$kind" ] && err "second rejection type ($kind after $allowed); aborting worldgen"
             allowed="$kind"; log "worldgen rejection: $kind -- allowing that type"
             cmd_ui click "ALLOW THIS REJECTION TYPE" >/dev/null 2>&1
         fi
-        echo "$scr" | grep -q "Create new world" && err "dropped to the title during worldgen"
+        grep -q "Create new world" <<< "$scr" && err "dropped to the title during worldgen"
     done
     [ "$waited" -lt "${CX_GENWORLD_TIMEOUT:-600}" ] || err "worldgen did not finish in ${CX_GENWORLD_TIMEOUT:-600}s"
     wait_state screen viewscreen_titlest 60 || err "did not return to the title after keeping the world"
@@ -968,13 +974,21 @@ cmd_step() {
     # cur_year_tick RESETS to 0 at the new year (403,200 ticks), so a naive t1-t0 goes
     # hugely negative and the loop waits out its whole timeout on a fort that is running
     # perfectly. Seen 2026-09-16: "stepped -307819 ticks (401790 -> 93971) in 200s".
-    local i=0 last="$t0" stalled=0 delta=0
-    while [ "$i" -lt $((secs * 4)) ]; do
+    # The cap is WALL time (16 Nov 2026, B1 PC_SAVR): it used to count polls, and a hung DF makes every poll wait out its
+    # RPC timeout, so a 600 s step sat 19 min on a frozen DF. Several empty reads in a row = DF stopped answering: fail
+    # now (exit 87, HUNG) rather than at the cap.
+    local i=0 last="$t0" stalled=0 delta=0 deadline=$((SECONDS + secs)) t_start=$SECONDS empty=0
+    while [ "$SECONDS" -lt "$deadline" ]; do
         t1=$(ui_get tick)
         # An empty read (the server's "I/O error in send result", seen twice on 28 Sep 2026 right after an unpause)
         # is not tick 0: the arithmetic took it as a new-year wrap, "stepped 273980 ticks (129220 -> )", and the step
         # returned at once with the fort left RUNNING. Skip the poll instead.
-        case "$t1" in ''|*[!0-9]*) sleep 0.25; i=$((i + 1)); continue ;; esac
+        case "$t1" in ''|*[!0-9]*)
+            empty=$((empty + 1))
+            [ "$empty" -ge 4 ] && { echo "[cx-lifecycle] ERROR: DF stopped answering mid-step (4 empty reads, last tick $last, $((SECONDS - t_start))s in): hung" >&2; exit 87; }
+            sleep 0.25; i=$((i + 1)); continue ;;
+        esac
+        empty=0
         delta=$((t1 - t0)); [ "$delta" -lt 0 ] && delta=$((delta + CX_TICKS_PER_YEAR))
         [ "$delta" -ge "$ticks" ] && break
         # a popup can be queued mid-step; notice a stall and clear it rather than
@@ -1007,7 +1021,7 @@ cmd_step() {
         fi
         sleep 0.25; i=$((i + 1))
     done
-    waited=$((i / 4))
+    waited=$((SECONDS - t_start))
     # the pause must land: an RPC error here would leave the fort running behind the caller's back
     local p
     for p in 1 2 3 4 5; do
@@ -1142,7 +1156,16 @@ cmd_save() {
     while [ "$waited" -lt 90 ]; do
         sleep 3; waited=$((waited + 3))
         if [ -f "$SAVE_ROOT/$name/world.sav" ] && [ "$(ui_get focus)" = "dwarfmode/Default" ]; then
-            log "saved -> $name ($(du -sh "$SAVE_ROOT/$name" | cut -f1), ${waited}s)"; return 0
+            # 17 Nov 2026 (B1 PC_COAST K21): the map came back while world.sav was still being written; the caller unpaused,
+            # the file stopped at 655 KB of ~5.6 MB and loading it crashed DF. Done = world.sav's size unchanged over 4 s.
+            local sz0=-1 sz1 still=0
+            while [ "$waited" -lt 180 ]; do
+                sz1=$(stat -f %z "$SAVE_ROOT/$name/world.sav" 2>/dev/null || echo 0)
+                if [ "$sz1" = "$sz0" ] && [ "$sz1" -gt 0 ]; then still=$((still + 1)); [ "$still" -ge 4 ] && break; else still=0; fi
+                sz0=$sz1; sleep 1; waited=$((waited + 1))
+            done
+            [ "$still" -ge 4 ] || err "manual save '$name': world.sav still growing after ${waited}s ($sz1 bytes)"
+            log "saved -> $name ($(du -sh "$SAVE_ROOT/$name" | cut -f1), world.sav $sz1 bytes, ${waited}s)"; return 0
         fi
     done
     err "manual save '$name' did not complete within 90s (state: $(ui_state))"
@@ -1251,7 +1274,8 @@ sw_guard() {
     esac
     "$SCRIPT_DIR/sw-rig-sync.sh" ensure "$mode"
     local rc=$?
-    [ $rc -eq 0 ] || { [ $rc -eq 86 ] && echo "[cx-lifecycle] STALE: refusing '$1' on old seasonal-wildlife code" >&2; exit $rc; }
+    [ $rc -eq 0 ] || { [ $rc -eq 86 ] && echo "[cx-lifecycle] STALE: refusing '$1' on old seasonal-wildlife code" >&2
+                     [ $rc -eq 87 ] && echo "[cx-lifecycle] HUNG: DF is running but not answering; refusing '$1'" >&2; exit $rc; }
     export CX_SW_GUARDED=1
 }
 sw_guard "${1:-status}"

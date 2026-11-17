@@ -59,12 +59,13 @@ def main() -> int:
 
     # 16 Nov 2026 (user): the rig only ever runs the seasonal-wildlife tree under development. A direct RPC call (the
     # harnesses' probes) runs the same guard cx-lifecycle does, unless that guard already ran (CX_SW_GUARDED=1) or the
-    # call is the guard's own. Exit 86 = stale: the running fort holds older code and must be reloaded.
+    # call is the guard's own. Exit 86 = stale: the running fort holds older code and must be reloaded; 87 = DF not answering.
     if args.port == 5555 and not args.version and os.environ.get("CX_SW_GUARDED") != "1":
         rc = subprocess.run([str(Path(__file__).resolve().parent / "sw-rig-sync.sh"), "ensure", "strict"]).returncode
         if rc != 0:
-            print(f"cx-rpc: refused, seasonal-wildlife code on the rig is not the tree under development (sw-rig-sync rc {rc})",
-                  file=sys.stderr)
+            why = ("DF is running but not answering (hung or busy)" if rc == 87 else
+                   "seasonal-wildlife code on the rig is not the tree under development")
+            print(f"cx-rpc: refused, {why} (sw-rig-sync rc {rc})", file=sys.stderr)
             return rc
 
     # A port of 0 or empty means the caller could not find a listener. Say so

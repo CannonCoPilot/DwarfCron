@@ -34,6 +34,7 @@ PORT="${CX_DFHACK_PORT:-5555}"
 export CX_SW_GUARDED=1   # our own RPC calls must not re-enter the guard
 mkdir -p "$STATE"
 STALE=86
+NOREAD=87   # DF is running but answered no state read (hung or busy): not stale, the caller decides (16 Nov 2026, B1 PC_EVIL)
 say() { echo "[sw-rig] $*" >&2; }
 die() { say "ERROR: $*"; exit 1; }
 [ -d "$SW_DEV/scripts" ] || die "SW_DEV is not a seasonal-wildlife tree: $SW_DEV"
@@ -94,7 +95,10 @@ clear_shadows() {
     local keep; keep=$( { manifest_scripts; manifest_plugin; } | cut -f1)
     while IFS= read -r f; do
         local rel="${f#"$HACK"/}"
-        echo "$keep" | grep -qxF "$rel" || quarantine "$f" "no longer in the tree"
+        # a here-string, not `echo | grep -q`: under pipefail grep -q's early exit can SIGPIPE the echo and the pipeline
+        # reads as "not found" -- tool files the tree DOES ship were moved aside under a running DF (16-17 Nov 2026: 3 times,
+        # B1 PC_COAST step failed "not installed after the copy: .../install.lua")
+        grep -qxF "$rel" <<< "$keep" || quarantine "$f" "no longer in the tree"
     done < <(find "$HACK/scripts" -type f \( -name 'seasonal-wildlife*' -o -path '*/internal/seasonal-wildlife/*' \) 2>/dev/null)
 }
 
@@ -150,7 +154,7 @@ ensure() {
     [ "$mode" = files ] && { [ "$ch" != "0 0" ] && say "synced $(tree_desc) (scripts $tree, plugin $plug)"; return 0; }
     df_running || return 0
     local lv; lv=$(live); local ltree lplug lmap; read -r ltree lplug lmap <<< "$lv"
-    [ -n "$lmap" ] || { say "could not read the running DF's state ($lv)"; [ "$mode" = strict ] && return $STALE || return 0; }
+    [ -n "$lmap" ] || { say "could not read the running DF's state ($lv): DF is not answering"; [ "$mode" = strict ] && return $NOREAD || return 0; }
     # a plugin change needs a fresh DF (the dll and its Lua module load once per process)
     # nil = a DF the rig did not start (or started before this guard): which plugin it loaded is unknown, so it is stale
     if [ "$lplug" != "$plug" ]; then
