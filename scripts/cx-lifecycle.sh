@@ -1036,6 +1036,14 @@ cmd_step() {
     log "stepped $delta ticks ($t0 -> $t1) in ${waited}s"
     # the wait is capped at $secs (default 120): a long step at a slow tick rate returns early, so say so
     [ "$delta" -lt "$ticks" ] && log "WARNING: short step: $delta of $ticks ticks before the ${secs}s cap (pass a larger second argument or step in chunks)"
+    # No tick at all in the whole cap is a failure, not a short step (17 Nov 2026, hangtest K21_PC_EVIL: the fort was LOST --
+    # "Your settlement has crumbled to its end" holds dwarfmode/Options and LEAVESCREEN cannot clear it -- and `step` kept
+    # returning 0, so the caller's until-tick loop stepped a dead fort for an hour). Exit 88 STALLED; say why when we can.
+    if [ "$delta" -eq 0 ]; then
+        local why; why=$(cmd_lua 'local n=0 for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and dfhack.units.isAlive(u) then n=n+1 end end print(n)' 2>/dev/null | tr -d '\r' | grep -E '^[0-9]+$' | tail -1)
+        [ "$why" = 0 ] && { echo "[cx-lifecycle] ERROR: no tick in ${waited}s: the fort is LOST (0 living citizens)" >&2; exit 88; }
+        echo "[cx-lifecycle] ERROR: no tick in ${waited}s at $t1 (focus $(cmd_ui focus 2>/dev/null | tr -d '\r'), ${why:-?} citizens): stalled" >&2; exit 88
+    fi
     return 0
 }
 

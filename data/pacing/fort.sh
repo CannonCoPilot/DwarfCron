@@ -46,6 +46,8 @@ while [ "$k" -le "$N" ]; do
     if [ $rc -ne 0 ]; then
         log "step $k failed (rc $rc): $(echo "$out" | tail -1)"
         echo "$(date +%H:%M:%S) chunk $k rc $rc from $sname: $(echo "$out" | tail -1)" >> "$D/hangs.txt"
+        # rc 88 LOST: every citizen is dead; the fort's run ends here (a reload would only replay the loss; 17 Nov 2026)
+        if [ $rc -eq 88 ] && grep -q 'LOST' <<< "$out"; then log "fort LOST in chunk $k (0 living citizens): run ends"; echo "LOST $k" >> "$D/hangs.txt"; break; fi
         if [ "$hung_at" = "$k@$sname" ]; then log "DETERMINISTIC HANG: chunk $k hung twice from $sname (kept)"; echo "DETERMINISTIC $k $sname" >> "$D/hangs.txt"; break; fi
         tries=$((tries + 1)); [ "$tries" -gt 5 ] && { log "giving up after 5 recoveries"; break; }
         hung_at="$k@$sname"
