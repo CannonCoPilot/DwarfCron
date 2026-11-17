@@ -67,6 +67,27 @@ is_running() { [ -n "$(df_pids)" ]; }
 # survives a crashed run: a stash that already exists is the user's line and is never overwritten by NONE.
 D_INIT="$DF_USER_DIR/prefs/d_init.txt"
 AUTOSAVE_STASH="$DF_USER_DIR/prefs/.cx-autosave-stash"
+# 16 Nov 2026: the user turned on [DISPLAY_ALL_ERRORLOGS:YES] (prefs/init.txt) to see mod errors; DF then opens a box per
+# broken Workshop mod over the title, covering "Continue active game", and a fed click does not close it. The user: "just
+# hit OK and keep going". The rig sets it to NO for its own sessions and restores the user's line on stop, as autosave.
+INIT_TXT="$DF_USER_DIR/prefs/init.txt"
+ERRLOG_STASH="$DF_USER_DIR/prefs/.cx-errorlog-stash"
+errlog_off() {
+    [ -f "$INIT_TXT" ] || return 0
+    local line; line=$(grep -m1 '^\[DISPLAY_ALL_ERRORLOGS:' "$INIT_TXT" | tr -d '\r')
+    [ -n "$line" ] || return 0
+    [ -f "$ERRLOG_STASH" ] || printf '%s\n' "$line" > "$ERRLOG_STASH"
+    [ "$line" = "[DISPLAY_ALL_ERRORLOGS:NO]" ] && return 0
+    sed -i '' 's/^\[DISPLAY_ALL_ERRORLOGS:[A-Z]*\]/[DISPLAY_ALL_ERRORLOGS:NO]/' "$INIT_TXT"
+    log "errorlogs: $line -> NO for the rig (restored on stop)"
+}
+errlog_restore() {
+    [ -f "$ERRLOG_STASH" ] || return 0
+    local line; line=$(tr -d '\r' < "$ERRLOG_STASH")
+    printf "%s" "$line" | grep -qE "^\[DISPLAY_ALL_ERRORLOGS:[A-Z]+\]$" || { log "errorlogs: bad stash '$line'; left init.txt as is"; return 1; }
+    sed -i '' "s/^\[DISPLAY_ALL_ERRORLOGS:[A-Z]*\]/$line/" "$INIT_TXT" && rm -f "$ERRLOG_STASH"
+    log "errorlogs: restored $line"
+}
 
 autosave_off() {
     [ "${CX_KEEP_AUTOSAVE:-0}" = 1 ] && { log "autosave: left as is (CX_KEEP_AUTOSAVE=1)"; return 0; }
@@ -155,7 +176,7 @@ cmd_start() {
     [ -f "$DF_DIR/$DF_EXE_NAME" ] || err "no DF at $DF_DIR"
 
     local port; port=$(pick_port)
-    autosave_off
+    autosave_off; errlog_off
     log "starting DF in bottle '$CX_BOTTLE' on port $port"
 
     # DFHACK_DISABLE_CONSOLE: DFHack's external console deadlocks DF's event
@@ -191,7 +212,7 @@ cmd_start() {
 }
 
 cmd_stop() {
-    if ! is_running; then log "DF not running"; autosave_restore; return 0; fi
+    if ! is_running; then log "DF not running"; autosave_restore; errlog_restore; return 0; fi
     local port; port=$(live_port)
 
     # Ask the game to quit itself first: DFHack flushes its config and DF
@@ -222,7 +243,7 @@ cmd_stop() {
         is_running && { log "TERM ignored; KILL"; kill -KILL $(df_pids) 2>/dev/null; sleep 2; }
     fi
     is_running && err "could not stop DF" || log "stopped after ${waited}s"
-    autosave_restore
+    autosave_restore; errlog_restore
 }
 
 cmd_status() {
