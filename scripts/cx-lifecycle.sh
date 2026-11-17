@@ -179,6 +179,7 @@ cmd_start() {
     # the title before clearing the panel, or the check passes vacuously.
     wait_state screen viewscreen_titlest 60 || log "WARNING: no title screen after 60s (state: $(ui_state))"
     sleep 1; log "welcome modal: $(dismiss_modal)"
+    "$SCRIPT_DIR/sw-rig-sync.sh" stamp-start || log "WARNING: could not stamp the seasonal-wildlife code DF runs"
             echo "$port"
             return 0
         fi
@@ -282,6 +283,15 @@ cmd_deploy() {
 #   deploy-tool ~/Claude/Projects/seasonal-wildlife/scripts
 cmd_deploy_tool() {
     local src="${1:-}"
+    # 16 Nov 2026 (user): the rig runs only the tree under development ($SW_DEV), installed into DFHack's hack/ by
+    # sw-rig-sync.sh before every command. This verb used to copy any tree into dfhack-config/scripts, where it shadowed
+    # hack/scripts. It now syncs $SW_DEV, and refuses another seasonal-wildlife tree rather than install it.
+    if [ -z "$src" ] || [ -f "$src/seasonal-wildlife.lua" ]; then
+        if [ -n "$src" ] && [ "$(cd "$src" && pwd -P)" != "$(cd "$SW_DEV/scripts" && pwd -P)" ]; then
+            err "deploy-tool: the rig runs only \$SW_DEV ($SW_DEV); to test $src, point SW_DEV at its tree"
+        fi
+        "$SCRIPT_DIR/sw-rig-sync.sh" ensure strict; return $?
+    fi
     [ -n "$src" ] || err "usage: deploy-tool <src-scripts-dir>"
     [ -d "$src" ] || err "not a directory: $src"
     local dest="$DF_DIR/dfhack-config/scripts"
@@ -432,7 +442,9 @@ ensure_title() {
         [ -z "$mode" ] || [ "$mode" = "MAIN_MENU" ] && break
         cmd_ui key LEAVESCREEN >/dev/null 2>&1; sleep 1
     done
-    [ "$(ui_get screen)" = "viewscreen_titlest" ] && [ "$(ui_get titlemode)" = "MAIN_MENU" ]
+    [ "$(ui_get screen)" = "viewscreen_titlest" ] && [ "$(ui_get titlemode)" = "MAIN_MENU" ] || return 1
+    # no fort is loaded now: the seasonal-wildlife scripts DF runs become the tree's (sw-rig-sync.sh)
+    "$SCRIPT_DIR/sw-rig-sync.sh" ensure title || return 1
 }
 
 CX_TICKS_PER_YEAR=403200   # DF year length; cur_year_tick wraps here
@@ -1204,6 +1216,24 @@ cmd_restore() {
 cmd_snapshots() { ls -1 "$CX_SNAPSHOT_DIR" 2>/dev/null || echo "(none)"; }
 
 # --- dispatch -------------------------------------------------------------
+
+# seasonal-wildlife: before any command that can touch the game, install the tree under development and make sure the
+# running DF runs it (sw-rig-sync.sh; exit 86 = stale, the caller must reload its fort). Commands that only start/leave a
+# fort sync and let ensure_title/start bring DF onto the new code; pure reads of the screen and the session are exempt.
+sw_guard() {
+    [ "${CX_SW_GUARDED:-0}" = 1 ] && return 0
+    local mode
+    case "${1:-status}" in
+        stop|status|health|state|screen|ui|logs|port|bottles|snapshots|snapshot|restore|saves|save-backup|save-restore|autosave|deploy|deploy-tool) return 0 ;;
+        start|restart|load|embark|embark1|genworld|title|survey|rivers|facts) mode=leaving ;;
+        *) mode=strict ;;
+    esac
+    "$SCRIPT_DIR/sw-rig-sync.sh" ensure "$mode"
+    local rc=$?
+    [ $rc -eq 0 ] || { [ $rc -eq 86 ] && echo "[cx-lifecycle] STALE: refusing '$1' on old seasonal-wildlife code" >&2; exit $rc; }
+    export CX_SW_GUARDED=1
+}
+sw_guard "${1:-status}"
 
 case "${1:-status}" in
     start)     shift; cmd_start "$@" ;;

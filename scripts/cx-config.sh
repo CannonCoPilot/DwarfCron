@@ -49,6 +49,9 @@ CX_TEST_WORLD_TAG="${CX_TEST_WORLD_TAG:-R9}"   # the seedtag in test-fort names:
 # Receiver port. On this machine 5000 is taken, so the default here is not
 # DFHack's default. DFHACK_PORT overrides both.
 CX_DFHACK_PORT="${CX_DFHACK_PORT:-5555}"
+# seasonal-wildlife under development: the ONE tree the rig installs and runs (user 16 Nov 2026: the rig only ever runs the
+# latest code). scripts/sw-rig-sync.sh installs it into DFHack's hack/ before every command that can touch the game.
+SW_DEV="${SW_DEV:-$HOME/Claude/Projects/sw-wt/plugin}"
 CX_DFHACK_PORT_FALLBACK="${CX_DFHACK_PORT_FALLBACK:-5100}"
 
 # ⚠️ Leave DFHack's `allow_remote` FALSE. The socket is a real macOS loopback

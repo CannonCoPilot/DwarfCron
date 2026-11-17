@@ -35,7 +35,9 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
 CX = str(ROOT / "scripts" / "cx-lifecycle.sh")
-TOOL = Path(os.environ.get("SW_TOOL", str(Path.home() / "Claude/Projects/seasonal-wildlife")))   # the checkout under test (a worktree per release)
+# the checkout under test: the tree the rig runs ($SW_DEV, sw-rig-sync.sh; user 16 Nov: one source of truth). SW_TOOL is
+# still honoured but must name the same tree, or the claims would read code the rig is not running.
+TOOL = Path(os.environ.get("SW_TOOL", os.environ.get("SW_DEV", str(Path.home() / "Claude/Projects/sw-wt/plugin"))))
 RUN = datetime.now().strftime("%Y%m%d-%H%M%S")
 OUT = ROOT / "data/validation/full" / RUN
 # --list and --dry-run never touch the rig and never write a run directory under data/ (v7.1 validator wave)

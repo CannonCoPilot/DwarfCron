@@ -16,6 +16,8 @@ Runs against any DFHack the client can reach, so it serves the VM rig too:
 from __future__ import annotations
 
 import argparse
+import subprocess
+import os
 import sys
 from pathlib import Path
 
@@ -54,6 +56,16 @@ def main() -> int:
     g.add_argument("--cmd", nargs=argparse.REMAINDER, metavar="ARG",
                    help="run a DFHack command (all following args are passed on)")
     args = p.parse_args()
+
+    # 16 Nov 2026 (user): the rig only ever runs the seasonal-wildlife tree under development. A direct RPC call (the
+    # harnesses' probes) runs the same guard cx-lifecycle does, unless that guard already ran (CX_SW_GUARDED=1) or the
+    # call is the guard's own. Exit 86 = stale: the running fort holds older code and must be reloaded.
+    if args.port == 5555 and not args.version and os.environ.get("CX_SW_GUARDED") != "1":
+        rc = subprocess.run([str(Path(__file__).resolve().parent / "sw-rig-sync.sh"), "ensure", "strict"]).returncode
+        if rc != 0:
+            print(f"cx-rpc: refused, seasonal-wildlife code on the rig is not the tree under development (sw-rig-sync rc {rc})",
+                  file=sys.stderr)
+            return rc
 
     # A port of 0 or empty means the caller could not find a listener. Say so
     # rather than failing inside the socket layer with a confusing message.

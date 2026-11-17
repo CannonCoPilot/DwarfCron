@@ -69,7 +69,7 @@ DF_DIR = Path(os.environ.get('DF_DIR', CX_ROOT / 'Bottles/Win10/drive_c/Program 
 SAVE_ROOT = Path(os.environ.get('DF_SAVE_DIR', CX_ROOT / 'Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save'))
 BACKUP_ROOT = Path(os.environ.get('CX_SAVE_BACKUPS', CX_ROOT / 'df-snapshots/saves'))
 PARK_ROOT = CX_ROOT / 'df-snapshots/parked'
-SW_REPO = Path(os.environ.get('SW_REPO', HOME / 'Claude/Projects/sw-wt/plugin'))
+SW_REPO = Path(os.environ.get('SW_REPO', os.environ.get('SW_DEV', HOME / 'Claude/Projects/sw-wt/plugin')))   # the tree the rig runs (sw-rig-sync.sh)
 PORT = os.environ.get('CX_PORT', '5555')
 
 TPY, TPS, TPD = 403_200, 100_800, 1_200
