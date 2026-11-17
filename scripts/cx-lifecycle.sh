@@ -778,6 +778,11 @@ cmd_embark() {
         cmd_cmd startdwarf "$sd" 2>/dev/null | tr -d "\r" | tail -1 | sed 's/^/[cx-lifecycle] /'
     fi
     open_site_screen "$world"
+    # The Workshop mod "Evil Biome Embark Helper" (3738190282, evil_check) draws an overlay on the site screen that
+    # indexes world_data.region_map with no bounds check; it crashed DF twice at region6 62,18 (backtrace_11_17b/c,
+    # 17 Nov 2026: dfhack+0x3a68c3 from evil_check.lua:186 under overlay render). Switch it off for the rig's embark.
+    # The mod's own onLoad.init re-enables it at every world load, so the user's play keeps it.
+    cmd_cmd overlay disable evil_check.evil_check >/dev/null 2>&1 || true
     # CX_EMBARK_CIV=<ENTITY_CODE>: embark as that civilization (the site screen's start_civ list; 4 Nov 2026, civ
     # mega-mod fortress-playable gate). Without it DF's own default civ is used, as before.
     if [ -n "${CX_EMBARK_CIV:-}" ]; then
@@ -828,6 +833,10 @@ cmd_embark() {
     # rewrites the hover each frame, so `place` (write the square + one synthetic map click) lands on the target -- the
     # 4 Nov failure was a parked pointer over DF overwriting the hover. Never waits for an idle Mac. Refused (falls
     # back to the pointer path below) when the pointer happens to be over DF.
+    # 17 Nov 2026: DF keeps the last pointer position after the pointer leaves its window (read 114,14 for 10+ minutes with
+    # another app in front), so a stale value refused this path. Clear it first: a pointer really over DF rewrites it
+    # within a frame and the check below still falls back to the pointer path.
+    if [ "${CX_EMBARK_PLACE:-0}" = 1 ]; then cmd_lua 'df.global.gps.mouse_x=-1; df.global.gps.mouse_y=-1' >/dev/null 2>&1; sleep 1; fi
     if [ "${CX_EMBARK_PLACE:-0}" = 1 ] && [ "$(cmd_lua 'print(df.global.gps.mouse_x)' 2>/dev/null | tr -d "\r" | tail -1)" = "-1" ]; then
         rd=$(cmd_cmd cx-embark place "$tx" "$ty" 2>/dev/null | tr -d "\r" | tail -1)
         log "pointer-free: $rd"

@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seasonal Wildlife 8.1 — every mechanic, start to finish</title>
+<style>
+  :root {
+    --sw: #2f6db5; --sw-bg: #eaf2fc; --df: #b8641c; --df-bg: #fcf0e4;
+    --ink: #1d232b; --muted: #5d6773; --line: #c9d1db; --new: #1f8a4c; --pend: #a3307a;
+    --off: #6b7480; --off-bg: #eef0f3; --on: #1f6f43; --on-bg: #e3f3ea; --page: #f4f6f9;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--page); color: var(--ink);
+         font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+  code { font: 12.5px/1 ui-monospace, SFMono-Regular, Menlo, monospace; background: #eef1f5; padding: 1px 4px; border-radius: 4px; }
+  header { padding: 26px 40px 18px; background: #fff; border-bottom: 1px solid var(--line); }
+  h1 { margin: 0 0 4px; font-size: 25px; letter-spacing: -.01em; }
+  .sub { color: var(--muted); max-width: 1150px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 14px; font-size: 13px; align-items: center; }
+  .legend > span { display: inline-flex; align-items: center; gap: 6px; }
+  .chip { display: inline-block; padding: 1px 7px; border-radius: 4px; font-size: 10.5px; font-weight: 800;
+          letter-spacing: .04em; color: #fff; vertical-align: 1px; white-space: nowrap; }
+  .c-sw { background: var(--sw); } .c-df { background: var(--df); } .c-new { background: var(--new); } .c-pend { background: var(--pend); }
+  .c-off { background: var(--off-bg); color: var(--off); border: 1px solid #c3c9d1; }
+  .c-on { background: var(--on-bg); color: var(--on); border: 1px solid #a9d6bb; }
+  dl.terms { display: grid; grid-template-columns: max-content 1fr; gap: 3px 12px; margin: 14px 0 0; font-size: 13px; max-width: 1150px; }
+  dl.terms dt { font-weight: 700; } dl.terms dd { margin: 0; color: #39424d; }
+  main { padding: 22px 40px 60px; max-width: 1420px; margin: 0 auto; }
+
+  nav.clock { display: grid; grid-template-columns: repeat(11, 1fr); gap: 6px; margin-bottom: 18px; position: sticky; top: 0; z-index: 5;
+              background: var(--page); padding: 8px 0; }
+  nav.clock a { text-decoration: none; color: inherit; background: #fff; border: 1px solid var(--line);
+                border-radius: 8px; padding: 6px 9px; font-size: 11.5px; line-height: 1.3; }
+  nav.clock a b { display: block; font-size: 12.5px; }
+  nav.clock a.sw { border-top: 4px solid var(--sw); } nav.clock a.df { border-top: 4px solid var(--df); }
+  nav.clock a.mix { border-top: 4px solid #6b5bb5; }
+  nav.clock a:hover { background: #f0f5fc; }
+
+  section.panel { background: #fff; border: 1px solid var(--line); border-radius: 12px; margin: 0 0 16px; overflow: hidden; scroll-margin-top: 80px; }
+  section.panel > h2 { margin: 0; padding: 12px 18px; font-size: 16.5px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  section.sw > h2 { background: var(--sw-bg); border-bottom: 2px solid var(--sw); }
+  section.df > h2 { background: var(--df-bg); border-bottom: 2px solid var(--df); }
+  section.mix > h2 { background: #efecfa; border-bottom: 2px solid #6b5bb5; }
+  h2 .when { font-weight: 600; font-size: 12.5px; color: var(--muted); }
+  h2 .num { display: inline-flex; width: 28px; height: 28px; border-radius: 50%; color: #fff;
+            align-items: center; justify-content: center; font-size: 13.5px; flex: none; }
+  section.sw h2 .num { background: var(--sw); } section.df h2 .num { background: var(--df); } section.mix h2 .num { background: #6b5bb5; }
+  .body { padding: 16px 18px 18px; }
+  .lead { margin: 0 0 12px; color: #39424d; max-width: 1150px; }
+
+  .flow { display: flex; flex-direction: column; align-items: stretch; }
+  .step { border: 1px solid var(--line); border-left: 5px solid var(--sw); border-radius: 8px; padding: 9px 12px; background: #fff; }
+  .step.df { border-left-color: var(--df); background: #fffaf5; }
+  .step.offstep { border-left-color: #aab3be; background: #fafbfc; }
+  .t { font-weight: 700; }
+  .badge { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px;
+           border-radius: 11px; background: var(--sw); color: #fff; font-weight: 800; font-size: 12px; margin-right: 8px; vertical-align: 1px; }
+  .step.df .badge { background: var(--df); }
+  .step ul { margin: 5px 0 0 0; padding-left: 20px; } .step li { margin: 2px 0; }
+  .arrow { align-self: center; width: 0; height: 18px; border-left: 2px solid #8a96a3; position: relative; margin: 2px 0; }
+  .arrow::after { content: ""; position: absolute; left: -6px; bottom: -2px; border: 5px solid transparent; border-top: 7px solid #8a96a3; border-bottom: 0; }
+  .note { color: var(--muted); font-size: 12.5px; }
+
+  .grid { display: grid; gap: 10px; }
+  .g2 { grid-template-columns: repeat(2, 1fr); } .g3 { grid-template-columns: repeat(3, 1fr); }
+  .g4 { grid-template-columns: repeat(4, 1fr); } .g5 { grid-template-columns: repeat(5, 1fr); }
+  .layer { border-radius: 8px; border: 1px solid var(--line); background: #fbfcfe; padding: 9px 10px; font-size: 12.5px; }
+  .layer b { display: block; font-size: 14px; margin-bottom: 3px; }
+
+  table.t1 { border-collapse: collapse; width: 100%; font-size: 13px; }
+  table.t1 th, table.t1 td { border: 1px solid var(--line); padding: 5px 8px; text-align: center; }
+  table.t1 th { background: #f2f5f9; font-weight: 700; }
+  table.t1 td:first-child, table.t1 th:first-child { text-align: left; }
+  details.ex { border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; margin: 6px 0; background: #fbfcfe; }
+  details.ex > summary { cursor: pointer; }
+  details.ex table.t1 { margin-top: 4px; }
+  tr.z td { color: var(--muted); }
+  table.t1 td.z { color: #b7bec7; }
+  table.t1.left td, table.t1.left th { text-align: left; vertical-align: top; }
+
+  .branch { display: grid; grid-template-columns: 230px 1fr; border: 1px dashed #9aa6b3; border-radius: 8px; overflow: hidden; margin-top: 7px; }
+  .branch .q { background: #f6f8fb; padding: 9px 12px; font-weight: 700; border-right: 1px dashed #9aa6b3; display: flex; align-items: center; }
+  .branch .opts > div { padding: 7px 12px; border-bottom: 1px dashed #d4dbe3; }
+  .branch .opts > div:last-child { border-bottom: 0; }
+  .branch .opts b { color: var(--sw); }
+
+  .path { display: grid; grid-template-columns: 1fr 26px 1fr 26px 1fr 26px 1fr; align-items: stretch; }
+  .gate { border: 2px solid var(--sw); border-radius: 10px; padding: 10px 12px; background: var(--sw-bg); }
+  .gate.df { border-color: var(--df); background: var(--df-bg); }
+  .gate .q { font-weight: 800; margin-bottom: 4px; }
+  .gate .no { color: #9b2c2c; font-size: 12.5px; margin-top: 6px; }
+  .chev { align-self: center; text-align: center; font-size: 24px; color: #8a96a3; }
+  .ways { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+
+  svg.overview { width: 100%; height: auto; display: block; }
+  svg text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+  footer { color: var(--muted); font-size: 12px; text-align: center; padding: 20px; }
+  @media (max-width: 1100px) { nav.clock { grid-template-columns: repeat(5, 1fr); } .g5, .g4 { grid-template-columns: repeat(2, 1fr); }
+                               .path { grid-template-columns: 1fr; } .chev { transform: rotate(90deg); } .ways { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Seasonal Wildlife 8.1 — every mechanic, start to finish</h1>
+  <div class="sub">Read from the engine code (dev tree <code>sw-wt/plugin</code>, commit 6dffef5) and its default settings on 17 Nov 2026. The overview is the whole loop on one page; panels 1–9 then go through it in time order: once, every season, every day, every 300 ticks, and so on. One game day is 1,200 ticks; a season is 100,800.</div>
+  <div class="legend">
+    <span><span class="chip c-sw">TOOL</span> seasonal-wildlife does it</span>
+    <span><span class="chip c-df">DF</span> Dwarf Fortress does it on its own</span>
+    <span><span class="chip c-on">ON</span> on by default</span>
+    <span><span class="chip c-off">OFF</span> off unless switched on</span>
+    <span><span class="chip c-new">NEW</span> added in 8.1 (this week)</span>
+    <span><span class="chip c-pend">PENDING</span> measured, not yet proven</span>
+  </div>
+  <dl class="terms">
+    <dt>Entry</dt><dd>One of DF's population records: one species in one place (a region tile, a cave, a water feature), with a <b>stock</b>: how many animals DF can still send from it.</dd>
+    <dt>Open / closed</dt><dd>An entry DF may pick from / one the tool has flagged extinct, so DF cannot pick it. Stock is untouched.</dd>
+    <dt>Held</dt><dd>Stock set to 0 and flagged extinct, the stock kept in the tool's <b>reserve</b>. <code>off</code> gives it all back.</dd>
+    <dt>Group</dt><dd>One band of animals on the map that the tool tracks (a herd, a pack, a flock, a school, or a single animal).</dd>
+    <dt>Cap</dt><dd>The most groups one place may hold at once.</dd>
+    <dt>Candidate list</dt><dd>Every species that could live at this fort.</dd>
+    <dt>Cast</dt><dd>The species chosen for one layer in one season.</dd>
+  </dl>
+</header>
+
+<main>
+  <nav class="clock">
+    <a class="mix" href="#p0"><b>Overview</b>the whole loop</a>
+    <a class="sw" href="#p1"><b>1 · Switch on</b>once per load</a>
+    <a class="sw" href="#p2"><b>2 · Build casts</b>once</a>
+    <a class="sw" href="#p2b"><b>2b · Ladder</b>FREQUENCY</a>
+    <a class="sw" href="#p3"><b>3 · Season change</b>4 a year</a>
+    <a class="sw" href="#p4"><b>4 · Daily</b>1 a day</a>
+    <a class="sw" href="#p5"><b>5 · Groups pass</b>every 300 ticks</a>
+    <a class="sw" href="#p6"><b>6 · Ecology</b>every 3,000 ticks</a>
+    <a class="sw" href="#p7"><b>7 · Fast jobs</b>10–200 ticks</a>
+    <a class="df" href="#p8"><b>8 · DF itself</b>always</a>
+    <a class="sw" href="#p9"><b>9 · Switch off</b>off / disable</a>
+  </nav>
+
+  <!-- 0 OVERVIEW -->
+  <section class="panel mix" id="p0">
+    <h2><span class="num">0</span>The whole loop on one page</h2>
+    <div class="body">
+      <svg class="overview" viewBox="0 0 1340 560" role="img" aria-label="Overview of the seasonal-wildlife loop">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6f7b88"/></marker>
+          <marker id="ahd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b8641c"/></marker>
+        </defs>
+        <!-- column titles -->
+        <g font-size="12" font-weight="700" fill="#5d6773" letter-spacing=".06em">
+          <text x="20" y="18">ONCE (AT SWITCH-ON)</text><text x="330" y="18">EVERY SEASON · EVERY 300 TICKS</text>
+          <text x="660" y="18">HOW ANIMALS ARRIVE</text><text x="960" y="18">WHERE THEY GO</text><text x="1150" y="18">ON THE MAP</text>
+        </g>
+        <!-- A raws -->
+        <rect x="20" y="30" width="270" height="62" rx="9" fill="#fff" stroke="#9aa6b3"/>
+        <text x="34" y="54" font-size="14" font-weight="700">Creature raws</text>
+        <text x="34" y="74" font-size="12.5" fill="#39424d">vanilla + every installed mod</text>
+        <!-- B candidate list -->
+        <rect x="20" y="122" width="270" height="86" rx="9" fill="#eaf2fc" stroke="#2f6db5"/>
+        <text x="34" y="146" font-size="14" font-weight="700">Candidate list</text>
+        <text x="34" y="166" font-size="12.5" fill="#39424d">species whose biomes fit the fort,</text>
+        <text x="34" y="182" font-size="12.5" fill="#39424d">each classified: role, guild, habitat,</text>
+        <text x="34" y="198" font-size="12.5" fill="#39424d">adult size, group size, vermin class</text>
+        <!-- C casts -->
+        <rect x="20" y="238" width="270" height="128" rx="9" fill="#eaf2fc" stroke="#2f6db5"/>
+        <text x="34" y="262" font-size="14" font-weight="700">28 casts</text>
+        <text x="34" y="282" font-size="12.5" fill="#39424d">7 layers × 4 seasons; each fills a</text>
+        <text x="34" y="298" font-size="12.5" fill="#39424d">slot table (roles), grown along the</text>
+        <text x="34" y="314" font-size="12.5" fill="#39424d">food web (New Rules) + vermin</text>
+        <text x="34" y="336" font-size="12.5" fill="#39424d">+ FREQUENCY ladder (per layer)</text>
+        <text x="34" y="352" font-size="12.5" fill="#39424d">written into the raws: DF's odds</text>
+        <!-- D off -->
+        <rect x="20" y="396" width="270" height="70" rx="9" fill="#fff" stroke="#9aa6b3" stroke-dasharray="5 4"/>
+        <text x="34" y="420" font-size="14" font-weight="700">Switch off</text>
+        <text x="34" y="440" font-size="12.5" fill="#39424d">every write undone, every held</text>
+        <text x="34" y="456" font-size="12.5" fill="#39424d">entry given its stock back</text>
+        <!-- E entries -->
+        <rect x="330" y="122" width="290" height="244" rx="9" fill="#eaf2fc" stroke="#2f6db5"/>
+        <text x="344" y="146" font-size="14" font-weight="700">Population entries + stock</text>
+        <text x="344" y="168" font-size="12.5" fill="#39424d">season turn: this season's cast opens,</text>
+        <text x="344" y="184" font-size="12.5" fill="#39424d">every other species is HELD (stock →</text>
+        <text x="344" y="200" font-size="12.5" fill="#39424d">reserve, extinct flag)</text>
+        <text x="344" y="222" font-size="12.5" fill="#39424d">one open entry per species; the tool</text>
+        <text x="344" y="238" font-size="12.5" fill="#39424d">makes one if the species has none</text>
+        <text x="344" y="260" font-size="12.5" fill="#39424d">dry → refilled from held copies;</text>
+        <text x="344" y="276" font-size="12.5" fill="#39424d">caverns open ≤ 30 each (NEW)</text>
+        <text x="344" y="298" font-size="12.5" fill="#39424d">stock 0 for a day, none on the map</text>
+        <text x="344" y="314" font-size="12.5" fill="#39424d">→ a stand-in from the same slot</text>
+        <text x="344" y="336" font-size="12.5" fill="#39424d">place at its cap → its entries CLOSED</text>
+        <text x="344" y="352" font-size="12.5" fill="#39424d">(pause), reopened at cap − 2</text>
+        <!-- F DF wave -->
+        <rect x="660" y="30" width="260" height="128" rx="9" fill="#fcf0e4" stroke="#b8641c"/>
+        <text x="674" y="54" font-size="14" font-weight="700">① DF sends a wave</text>
+        <text x="674" y="74" font-size="12.5" fill="#39424d">picks an OPEN entry near the site:</text>
+        <text x="674" y="90" font-size="12.5" fill="#39424d">surface by FREQUENCY; caverns</text>
+        <text x="674" y="106" font-size="12.5" fill="#39424d">seemingly by stock (PENDING)</text>
+        <text x="674" y="126" font-size="12.5" fill="#39424d">it waits flagged at the gate until</text>
+        <text x="674" y="142" font-size="12.5" fill="#39424d">the tool releases it on the clock</text>
+        <!-- G draw -->
+        <rect x="660" y="190" width="260" height="104" rx="9" fill="#eaf2fc" stroke="#2f6db5"/>
+        <text x="674" y="214" font-size="14" font-weight="700">② The tool draws a group</text>
+        <text x="674" y="234" font-size="12.5" fill="#39424d">water: always (DF sends none)</text>
+        <text x="674" y="250" font-size="12.5" fill="#39424d">land, flying, caverns: when due and</text>
+        <text x="674" y="266" font-size="12.5" fill="#39424d">no DF wave is waiting (NEW)</text>
+        <text x="674" y="282" font-size="12.5" fill="#39424d">a cast member, from its entry's stock</text>
+        <!-- H place -->
+        <rect x="660" y="326" width="260" height="88" rx="9" fill="#eaf2fc" stroke="#2f6db5"/>
+        <text x="674" y="350" font-size="14" font-weight="700">③ The tool places a group</text>
+        <text x="674" y="370" font-size="12.5" fill="#39424d">apex scheduler (daily), irruption</text>
+        <text x="674" y="386" font-size="12.5" fill="#39424d">waves (off by default), seeded</text>
+        <text x="674" y="402" font-size="12.5" fill="#39424d">schools; natives already here adopted</text>
+        <!-- I places -->
+        <rect x="960" y="30" width="160" height="384" rx="9" fill="#eaf2fc" stroke="#2f6db5"/>
+        <text x="974" y="54" font-size="14" font-weight="700">Places + caps</text>
+        <text x="974" y="76" font-size="12.5" fill="#39424d">ground · 4*</text>
+        <text x="974" y="96" font-size="12.5" fill="#39424d">flying · 4*</text>
+        <text x="974" y="116" font-size="12.5" fill="#39424d">ocean · 4*</text>
+        <text x="974" y="136" font-size="12.5" fill="#39424d">lake · 4*</text>
+        <text x="974" y="156" font-size="12.5" fill="#39424d">river · 4*</text>
+        <text x="974" y="176" font-size="12.5" fill="#39424d">pond · 4*</text>
+        <text x="974" y="196" font-size="12.5" fill="#39424d">cavern 1 · 7</text>
+        <text x="974" y="216" font-size="12.5" fill="#39424d">cavern 2 · 7</text>
+        <text x="974" y="236" font-size="12.5" fill="#39424d">cavern 3 · 7</text>
+        <text x="974" y="266" font-size="11.5" fill="#5d6773">* ⌊√ embark tiles⌋ + 1:</text>
+        <text x="974" y="281" font-size="11.5" fill="#5d6773">4 on a 3×3 embark</text>
+        <text x="974" y="306" font-size="11.5" fill="#5d6773">each place has its own</text>
+        <text x="974" y="321" font-size="11.5" fill="#5d6773">release clock: gap =</text>
+        <text x="974" y="336" font-size="11.5" fill="#5d6773">stay length ÷ target</text>
+        <text x="974" y="351" font-size="11.5" fill="#5d6773">× catch-up × jitter</text>
+        <text x="974" y="376" font-size="11.5" fill="#5d6773">one group per species</text>
+        <text x="974" y="391" font-size="11.5" fill="#5d6773">(surface and water)</text>
+        <!-- J on the map -->
+        <rect x="1150" y="30" width="170" height="250" rx="9" fill="#fff" stroke="#6b5bb5"/>
+        <text x="1164" y="54" font-size="14" font-weight="700">On the map</text>
+        <text x="1164" y="76" font-size="12.5" fill="#39424d">TOOL: food web →</text>
+        <text x="1164" y="92" font-size="12.5" fill="#39424d">who hunts whom</text>
+        <text x="1164" y="112" font-size="12.5" fill="#39424d">TOOL: leaders, herds,</text>
+        <text x="1164" y="128" font-size="12.5" fill="#39424d">stuck animals freed</text>
+        <text x="1164" y="148" font-size="12.5" fill="#39424d">TOOL: hunting skills,</text>
+        <text x="1164" y="164" font-size="12.5" fill="#39424d">quiet fight alerts</text>
+        <text x="1164" y="184" font-size="12.5" fill="#39424d">DF: wander, fight, eat,</text>
+        <text x="1164" y="200" font-size="12.5" fill="#39424d">breed, die</text>
+        <text x="1164" y="222" font-size="12.5" fill="#39424d">TOOL: groups whose</text>
+        <text x="1164" y="238" font-size="12.5" fill="#39424d">season ended are sent</text>
+        <text x="1164" y="254" font-size="12.5" fill="#39424d">off (7-day grace)</text>
+        <!-- K leaves -->
+        <rect x="1150" y="320" width="170" height="94" rx="9" fill="#fcf0e4" stroke="#b8641c"/>
+        <text x="1164" y="344" font-size="14" font-weight="700">Leaves or dies</text>
+        <text x="1164" y="364" font-size="12.5" fill="#39424d">DF refunds +1 to its</text>
+        <text x="1164" y="380" font-size="12.5" fill="#39424d">entry per animal that</text>
+        <text x="1164" y="396" font-size="12.5" fill="#39424d">walks off; a slot frees</text>
+        <!-- arrows -->
+        <g stroke="#6f7b88" stroke-width="2" fill="none" marker-end="url(#ah)">
+          <path d="M155,92 V118"/>
+          <path d="M155,208 V234"/>
+          <path d="M290,300 H326"/>
+          <path d="M620,180 C640,180 640,94 656,94"/>
+          <path d="M620,242 H656"/>
+          <path d="M620,330 C640,330 640,370 656,370"/>
+          <path d="M920,242 H956"/>
+          <path d="M920,370 H956"/>
+          <path d="M1120,150 H1146"/>
+          <path d="M1235,280 V316"/>
+        </g>
+        <g stroke="#b8641c" stroke-width="2" fill="none" marker-end="url(#ahd)">
+          <path d="M920,94 H956"/>
+        </g>
+        <!-- refund loop -->
+        <g stroke="#b8641c" stroke-width="2" fill="none" stroke-dasharray="6 4" marker-end="url(#ahd)">
+          <path d="M1235,414 V500 H475 V370"/>
+        </g>
+        <rect x="560" y="486" width="560" height="28" rx="6" fill="#fff"/>
+        <text x="570" y="505" font-size="12.5" fill="#b8641c">refund → the entry; if its species is resting now, the next hold moves it back into the reserve</text>
+        <text x="20" y="540" font-size="12" fill="#5d6773">Orange = DF. Blue = the tool. Purple = both act on the animals once they are on the map. ①②③ are the only three ways an animal arrives.</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- 1 -->
+  <section class="panel sw" id="p1">
+    <h2><span class="num">1</span>Switch on in a fort <span class="when">once per load (<code>enable</code>, or autostart at map load)</span></h2>
+    <div class="body flow">
+      <div class="step"><span class="badge">1</span><span class="t">No casts yet?</span> Build the candidate list and the casts (panel 2). On later loads the saved casts are kept; only <code>cast rebuild</code> grows them again.</div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">2</span><span class="t">Water layer on</span> if the map has water, unless the player set it.</div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">3</span><span class="t">Candidate list</span>: every creature in the raws (vanilla and mods) whose biome tags fit the fort's surroundings, not DF's own region list.
+        <ul><li>Each species is classified from its raws: role (predator or prey), guild (apex, mid predator, grazer, raptor, waterbird…), habitat (land, flier, aquatic, shore, waterbird), adult size, group size and vermin class.</li>
+            <li>Only "natural" creatures by default. Mythic, megabeast, night creature, undead and generated creatures are left out.</li></ul></div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">4</span><span class="t">Create entries</span>: a cast member with no entry near the fort gets one made, with stock. The list is then read again.</div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">5</span><span class="t">Write into the raws</span>:
+        <ul><li>Seasons for the roster.</li>
+            <li>Vermin hunting flags for predatory birds and small land predators <span class="chip c-off">OFF</span>.</li>
+            <li>The "curious" (thief) flags, cleared for thieves that stay.</li>
+            <li>Gobble and vermin-eating links.</li>
+            <li>The pack and solitary packages.</li></ul></div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">6</span><span class="t">Load-time surveys</span>, spread over a few ticks: caverns, wet map edges, water bodies (ocean, lake, river, pond, cavern pool), vegetation.</div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">7</span><span class="t">Start the jobs</span>, on staggered ticks so no two run on the same tick:
+        <div class="grid g5" style="margin-top:8px">
+          <div class="layer"><b>daily</b>1 day · panel 4</div>
+          <div class="layer"><b>groups</b>300 ticks · panel 5</div>
+          <div class="layer"><b>ecology</b>3,000 ticks · panel 6</div>
+          <div class="layer"><b>season timer</b>at the change's tick · panel 3</div>
+          <div class="layer"><b>alerts</b>10 ticks · panel 7</div>
+          <div class="layer"><b>curious</b>50 ticks · panel 7</div>
+          <div class="layer"><b>scavenging</b>200 ticks <span class="chip c-off">OFF</span></div>
+          <div class="layer"><b>vermin forage</b>100 ticks <span class="chip c-off">OFF</span></div>
+          <div class="layer"><b>water renderer</b>every frame (looks only)</div>
+        </div></div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="panel sw" id="p2">
+    <h2><span class="num">2</span>Build the casts <span class="when">once, at the first switch-on; again only on <code>cast rebuild</code></span></h2>
+    <div class="body">
+      <p class="lead">All 28 casts (7 layers × 4 seasons) are built together, in one random order seeded by site and year. This is the same builder as the Food Web Explorer, so the same fort gives the same casts. A species may sit in several casts, but each extra cast already holding it makes it 100× less likely. (An eighth, "deep" layer for the magma sea's species exists and is <span class="chip c-off">OFF</span>; it uses FREQUENCY only, no cast.)</p>
+      <div class="grid g5" style="grid-template-columns: repeat(7, 1fr)">
+        <div class="layer"><b>ground</b>arrivals: DF waves; tool draw if none</div>
+        <div class="layer"><b>flying</b>arrivals: DF waves; tool draw if none</div>
+        <div class="layer"><b>ocean</b>arrivals: tool draws only</div>
+        <div class="layer"><b>fresh</b>one cast for all fresh water: lake, river and ponds</div>
+        <div class="layer"><b>cavern 1</b>DF waves; tool draw after 4 quiet days</div>
+        <div class="layer"><b>cavern 2</b>as cavern 1</div>
+        <div class="layer"><b>cavern 3</b>as cavern 1</div>
+      </div>
+      <p class="note" style="margin:8px 0 12px">The fresh cast is built for <b>one</b> kind of water: a lake if the map has one, otherwise a river, otherwise ponds. Every fresh body (river, each pond, lake) then draws from that one cast, keeping only the members that fit it (panel 5, step k).</p>
+
+      <table class="t1">
+        <tr><th>Slot table (members per role)</th><th>apex</th><th>mid predator</th><th>grazer</th><th>ground prey</th><th>fish</th><th>open sea</th><th>shore</th><th>waterbird</th><th>flier</th><th>swimmer</th><th>sentient*</th><th>vermin</th></tr>
+        <tr><td><b>ground</b></td><td>1</td><td>2</td><td>2</td><td>2</td><td class="z">–</td><td class="z">–</td><td class="z">–</td><td class="z">–</td><td class="z">–</td><td class="z">–</td><td>1</td><td>3</td></tr>
+        <tr><td><b>flying</b></td><td>1</td><td class="z">–</td><td class="z">–</td><td class="z">–</td><td class="z">–</td><td class="z">–</td><td class="z">–</td><td class="z">–</td><td>2</td><td class="z">–</td><td>1</td><td>2–3</td></tr>
+        <tr><td><b>ocean</b></td><td>1</td><td>1–2</td><td class="z">–</td><td class="z">–</td><td>3</td><td>1</td><td>1–2</td><td>1–2</td><td class="z">–</td><td class="z">–</td><td>1</td><td>2–3</td></tr>
+        <tr><td><b>fresh</b>, map with a lake</td><td>1</td><td>1–2</td><td class="z">–</td><td class="z">–</td><td>3</td><td class="z">–</td><td>1–2</td><td>1–2</td><td class="z">–</td><td class="z">–</td><td>1</td><td>2–3</td></tr>
+        <tr><td><b>fresh</b>, river, no lake</td><td class="z">–</td><td>1</td><td class="z">–</td><td class="z">–</td><td>2</td><td class="z">–</td><td>1</td><td>1</td><td class="z">–</td><td class="z">–</td><td>1</td><td>2</td></tr>
+        <tr><td><b>fresh</b>, ponds only</td><td class="z">–</td><td>1</td><td class="z">–</td><td class="z">–</td><td>2</td><td class="z">–</td><td class="z">–</td><td class="z">–</td><td class="z">–</td><td class="z">–</td><td>1</td><td>2</td></tr>
+        <tr><td><b>each cavern</b></td><td>1</td><td>1</td><td class="z">–</td><td>1</td><td class="z">–</td><td class="z">–</td><td class="z">–</td><td class="z">–</td><td>1</td><td>1</td><td>1</td><td>2</td></tr>
+      </table>
+      <p class="note">* sentient: an animal person or another thinking species. "Ponds only": members must be 20,000 cm³ or less as adults. A range like 1–2 is rolled per cast.</p>
+
+      <div class="flow" style="margin-top:12px">
+        <div class="step"><span class="t">For each cast</span>, the candidates are the species in the candidate list that can live on this layer in this season.</div>
+        <div class="arrow"></div>
+        <div class="step"><span class="badge">1</span><span class="t">Apex</span>: one species is drawn for the apex slot. With no true apex among the candidates, a local one is used; with none at all, the largest mid predator is promoted.
+          <ul><li><b>Group mass</b> = adult size × the mean pack size for a pack hunter (a predator whose group can be more than 1); adult size alone for a solitary one. It is what the predator brings onto the map at once.</li>
+              <li><b>Weight</b> = √(group mass ÷ the largest group mass among the candidates) × 1.5 for a pack hunter × 0.2 for a giant × 0.01 for each other cast already holding the species. The square root favours big hunters without letting the biggest always win.</li></ul>
+          <table class="t1" style="margin-top:8px;max-width:980px">
+            <tr><th>Example: a temperate forest's apex candidates (vanilla raws)</th><th>adult size</th><th>group</th><th>group mass</th><th>weight</th><th>chance</th><th>savage forest, + giant grizzly</th></tr>
+            <tr><td>Grizzly bear (solitary)</td><td>200,000 cm³</td><td>1</td><td>200,000</td><td>√1 = 1.00</td><td>33%</td><td>28%</td></tr>
+            <tr><td>Wolf (pack of 3–7, mean 5)</td><td>40,000 cm³</td><td>5</td><td>200,000</td><td>√1 × 1.5 = 1.50</td><td>49%</td><td>41%</td></tr>
+            <tr><td>Cougar (solitary)</td><td>60,000 cm³</td><td>1</td><td>60,000</td><td>√0.3 = 0.55</td><td>18%</td><td>15%</td></tr>
+            <tr><td>Giant grizzly bear (solitary, giant)</td><td>1,700,000 cm³</td><td>1</td><td>1,700,000</td><td>√1 × 0.2 = 0.20</td><td>–</td><td>16%</td></tr>
+          </table>
+          <p class="note" style="margin:6px 0 0">With the giant grizzly present, the largest group mass is 1,700,000, so the others' square roots shrink (grizzly √0.118 = 0.34, wolves 0.34 × 1.5 = 0.51, cougar 0.19), but the giant's ×0.2 keeps it at 16%. If the wolf already heads another season's ground cast, its weight drops to 1.5 × 0.01 = 0.015: then grizzly 64%, cougar 35%, wolf 1%. That is how the four seasons of one layer end up with different apexes.</p></div>
+        <div class="arrow"></div>
+        <div class="step"><span class="badge">2</span><span class="t">Seed</span>: one high-value species into the slot with the most room. Flying seeds follow the fort's surroundings, from the first rung that has a candidate down: evil flier → good flier → savage with extinct species → savage flier (animal person or giant bug) → raptor.</div>
+        <div class="arrow"></div>
+        <div class="step"><span class="badge">3</span><span class="t">Grow on the food web</span> (New Rules), until every slot is full or nothing fits:
+          <ul><li>Take the free candidates that <b>eat</b>, or <b>are eaten by</b>, a member already in.</li>
+              <li>Among those, prefer the slot with the most room left, then pick by weight.</li>
+              <li>Weights: pack predators ×3 · ×0.01 for each other cast already holding the species · giants · animal people · cavern depth fit ("weirdness").</li></ul></div>
+        <div class="arrow"></div>
+        <div class="step"><span class="badge">4</span><span class="t">Unfilled slots are recorded</span> ("none in season", "all candidates used in other slots").</div>
+        <div class="arrow"></div>
+        <div class="step"><span class="badge">5</span><span class="t">Caverns: food-web guarantee</span>: a predator and its prey are forced in.</div>
+        <div class="arrow"></div>
+        <div class="step"><span class="badge">6</span><span class="t">Bonus predator</span>: a giant herbivore that nothing in the cast eats gets one of its eaters in an extra seat.</div>
+        <div class="arrow"></div>
+        <div class="step"><span class="badge">7</span><span class="t">Vermin</span>: what the members eat, one per vermin class first, then any.</div>
+        <div class="arrow"></div>
+        <div class="step"><span class="badge">8</span><span class="t">Cross-layer links</span>: who eats whom between layers this season (a bird taking fish, a ground predator taking a shore animal).</div>
+        <div class="arrow"></div>
+        <div class="step"><span class="badge">9</span><span class="t">Then</span>:
+          <ul><li>The player's pins override the build.</li>
+              <li><b>FREQUENCY ladder</b>: every cast member gets one number, 1–100, that becomes its FREQUENCY, DF's odds for picking it. This is the step that most decides how often each species shows up; it has its own panel, <a href="#p2b">2b</a>.</li>
+              <li>Entries are made for any member that has none.</li></ul></div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- 2b -->
+  <section class="panel sw" id="p2b">
+    <h2><span class="num" style="font-size:11px">2b</span>The FREQUENCY ladder <span class="when">built with the casts; written into the raws every day and at each season change</span></h2>
+    <div class="body">
+      <p class="lead"><b>What it is.</b> FREQUENCY is a number in each creature's raws that DF uses as its odds when it picks a species for a wave. When a wave is due, DF compares the FREQUENCY of every species that has an open entry, and a species with 60 is picked 3 times as often as one with 20. The tool rewrites every cast member's FREQUENCY from one "ladder". It is the step that most decides whether a species shows up far too often or far too rarely.</p>
+
+      <table class="t1 left" style="margin-bottom:14px">
+        <tr><th>Where the ladder acts</th><th>How</th></tr>
+        <tr><td>Ground, flying</td><td>DF's own waves: each species has one open entry (single source), so its odds are its FREQUENCY ÷ the sum over the season's open members. The tool's own draw (when DF has nothing waiting) takes the least-seen member first, then uses the ladder as its weights.</td></tr>
+        <tr><td>Water (ocean, lake, river, ponds)</td><td>DF sends no water waves. The tool's draw starts from the ladder value, then multiplies it by balance, pyramid, pull and feed (panel 5 k).</td></tr>
+        <tr><td>Caverns 1–3</td><td>DF's own waves, as on the surface. B1 suggests stock matters more than FREQUENCY there <span class="chip c-pend">PENDING</span>, which the cavern open stock (30) is meant to offset.</td></tr>
+        <tr><td>Apex predators</td><td><b>Not on the ladder.</b> Their own raw FREQUENCY, capped at 5, so DF rarely sends them. The apex scheduler places them instead (its presence targets: land 25, water 20, caverns 70).</td></tr>
+        <tr><td>Resting species</td><td>Not on the ladder. Surface: held by their stock (entries at 0). Caverns: FREQUENCY 0 (vermin 1).</td></tr>
+      </table>
+
+      <div class="flow">
+        <div class="step"><span class="badge">1</span><span class="t">One ladder per partition, for the whole year.</span> Ground → "land"; flying → "flying"; ocean and fresh → one "water" ladder; caverns 1, 2 and 3 → one "cavern" ladder. All four seasons' members are ranked together. A species cast on two layers takes the first in the order ground, flying, ocean, fresh, caverns <span class="chip c-new">NEW</span>. The raw has one FREQUENCY for every layer the species lives in; when two layers want different values, the higher wins.</div>
+        <div class="arrow"></div>
+        <div class="step"><span class="badge">2</span><span class="t">Sort the members into levels by slot.</span> Apex: out (above). <b>Prey level (H)</b>: grazer herd GZ, land prey PL, shore SH, land bird LB, waterbird WB, coastal fish FC, freshwater fish FF, open-sea fish PE. <b>Predator level (C)</b>: ground mid predator ML, water mid predator MW, raptor RP, sentient SN.</div>
+        <div class="arrow"></div>
+        <div class="step"><span class="badge">3</span><span class="t">Family weight by slot</span>: how common that kind of animal should be.
+          <table class="t1" style="margin-top:6px;max-width:900px">
+            <tr><th>Ladder</th><th>GZ grazer</th><th>PL land prey</th><th>SH shore</th><th>LB land bird</th><th>WB waterbird</th><th>FC/FF fish</th><th>PE open sea</th><th>ML/MW mid predator</th><th>RP raptor</th></tr>
+            <tr><td>land</td><td>10.5</td><td>8.75</td><td>7</td><td>6</td><td>6</td><td class="z">–</td><td class="z">–</td><td>2</td><td>2</td></tr>
+            <tr><td>flying</td><td class="z">–</td><td class="z">–</td><td class="z">–</td><td>30</td><td>30</td><td class="z">–</td><td class="z">–</td><td>2</td><td>2</td></tr>
+            <tr><td>water</td><td>6</td><td>6</td><td>6</td><td class="z">–</td><td>9</td><td>12</td><td>2 (×3 deep sea)</td><td>2</td><td><b>5</b> (no entry: default)</td></tr>
+            <tr><td>cavern</td><td>12</td><td>10</td><td>8</td><td>12</td><td>12</td><td>12 (FF)</td><td class="z">–</td><td>2</td><td>2</td></tr>
+          </table>
+          <p class="note" style="margin:6px 0 0">A slot with no entry in its ladder's row gets <b>5</b>. A sentient (SN) takes its own guild's weight, and also gets 5 when its guild has none. So raptors on the water ladder (ospreys) get 5, more than the water mid predators' 2.</p></div>
+        <div class="arrow"></div>
+        <div class="step"><span class="badge">4</span><span class="t">Size within its slot</span>: × (its adult size ÷ the geometric mean size of the members in the same slot)<sup>−0.75</sup>, kept between ×0.25 and ×4. The smaller of two grazers comes more often than the bigger one.</div>
+        <div class="arrow"></div>
+        <div class="step"><span class="badge">5</span><span class="t">Split between the levels by the pyramid</span>, the target share of <i>animals</i> per level, per season. Inside a level, each member gets its level's share in proportion to steps 3 × 4.
+          <table class="t1" style="margin-top:6px;max-width:700px">
+            <tr><th>Pyramid (% of animals)</th><th>prey H</th><th>predators C</th><th>apex A (scheduler)</th></tr>
+            <tr><td>land</td><td>73</td><td>20</td><td>7</td></tr><tr><td>flying</td><td>80</td><td>20</td><td>0</td></tr>
+            <tr><td>water, map with ocean</td><td>82</td><td>13</td><td>5</td></tr><tr><td>water, no ocean</td><td>87</td><td>13</td><td>3</td></tr>
+            <tr><td>cavern</td><td>60</td><td>27</td><td>13</td></tr>
+          </table>
+          <p class="note" style="margin:6px 0 0">Biomass guard (land and caverns): if the predators' share would weigh more than half the prey's biomass, the predator share is cut until it doesn't.</p></div>
+        <div class="arrow"></div>
+        <div class="step"><span class="badge">6</span><span class="t">From animals to waves: ÷ mean group size.</span> FREQUENCY picks <i>waves</i>, and a wave of elk is 3–7 animals, so the elk's share of animals is divided by 5 to get its share of waves. Herds and packs end up low on the ladder; solitary animals end up high.</div>
+        <div class="arrow"></div>
+        <div class="step"><span class="badge">7</span><span class="t">Scale to 1–100</span>: the member with the largest result gets 100, every other one the same proportion, rounded, with a floor of 1.</div>
+      </div>
+
+      <!-- EX:BEGIN (generated by .claude/scratch/pacing/ladder/gen_examples.py from real fort dumps) -->
+<h3 style="margin:18px 0 6px;font-size:15px">Worked examples: three real forts, every ladder member</h3>
+<p class="note" style="margin:0 0 6px">Read from three forts the rig embarked on 17 Nov 2026 with the current code (sw 6dffef5). The tool built these casts and ladders itself at embark. Every row is that fort's own creature record. The step columns are numbered as in the steps above. "In DF now" is the FREQUENCY in DF's raws one day after loading, when the tool's daily pass has written the season (spring). Open a fort to see all four of its ladders.</p>
+<p class="note" style="margin:0 0 6px"><b>Reading the last column.</b> A ladder covers the whole year, so it lists every species cast in <i>any</i> season. Each one does appear, in its own season(s), shown in the "cast" column. The last column is what DF holds <i>right now</i> (spring): <b>✓ written</b> = cast this season, and DF holds exactly the ladder value. <b>raw · closed until Su</b> = cast in another season. DF still holds its own raw FREQUENCY, but it cannot come now: on ground and flying its entries are held (stock moved to the reserve), so DF's pick never reaches it, and on water DF sends no waves and the tool draws only the current season's cast. When its season opens, the daily pass writes the ladder value. <b>0 · rests until Su</b> = a cavern species out of season: FREQUENCY 0 is how caverns rest a species. Apexes keep their capped value all year; the apex scheduler decides when they come.</p>
+<details class="ex" open><summary><b>Fort 1 · Savage marsh (region6 24,11; river + 11 ponds)</b> · water bodies the tool registered: 7 cavern_pool fresh, 11 pool fresh, 1 river fresh · 89 ladder members, 0 mismatches</summary>
+<h4 style="margin:12px 0 4px">Ground ladder</h4>
+<p class="note" style="margin:0 0 4px">Pyramid <b>land</b>: prey 73 / predators 20 / apex 7 (scheduler). Prey get 73 ÷ 93 = 78.49% of the animals, predators 21.51% (pyramid target).</p>
+<table class="t1 left" style="font-size:12px">
+<tr><th>Species</th><th>cast</th><th>slot</th><th>level</th><th>adult size</th><th>slot mean size</th><th>3 family</th><th>4 size factor</th><th>5 share of animals</th><th>6 mean group</th><th>÷ group</th><th>7 FREQUENCY</th><th>in DF's raws now (spring)</th></tr>
+<tr><td>Carboniferous arthropleura</td><td>Ground Au</td><td>PL land prey</td><td>H</td><td>50,000</td><td>422,475</td><td>8.75</td><td>×4.00</td><td>13.00%</td><td>1</td><td>13.00%</td><td><b>100</b></td><td>50 raw · closed until Au</td></tr>
+<tr><td>Giant weasel</td><td>Ground Sp</td><td>PL land prey</td><td>H</td><td>201,400</td><td>422,475</td><td>8.75</td><td>×1.74</td><td>5.67%</td><td>1</td><td>5.67%</td><td><b>44</b></td><td>44 ✓ written</td></tr>
+<tr><td>Giant hamster</td><td>Ground Wi</td><td>PL land prey</td><td>H</td><td>201,040</td><td>422,475</td><td>8.75</td><td>×1.75</td><td>5.67%</td><td>1</td><td>5.67%</td><td><b>44</b></td><td>50 raw · closed until Wi</td></tr>
+<tr><td>Cretaceous colepiocephale</td><td>Ground Sp</td><td>GZ grazer</td><td>H</td><td>10,000</td><td>1,419,995</td><td>10.5</td><td>×4.00</td><td>15.61%</td><td>4</td><td>3.90%</td><td><b>30</b></td><td>30 ✓ written</td></tr>
+<tr><td>Weasel</td><td>Ground Au</td><td>ML mid predator</td><td>C</td><td>200</td><td>13,235</td><td>2</td><td>×4.00</td><td>2.95%</td><td>1</td><td>2.95%</td><td><b>23</b></td><td>50 raw · closed until Au</td></tr>
+<tr><td>Adder</td><td>Ground Au</td><td>ML mid predator</td><td>C</td><td>150</td><td>13,235</td><td>2</td><td>×4.00</td><td>2.95%</td><td>1</td><td>2.95%</td><td><b>23</b></td><td>30 raw · closed until Au</td></tr>
+<tr><td>Cretaceous pachycephalosaurus</td><td>Ground Wi</td><td>GZ grazer</td><td>H</td><td>410,000</td><td>1,419,995</td><td>10.5</td><td>×2.54</td><td>9.90%</td><td>4</td><td>2.48%</td><td><b>19</b></td><td>50 raw · closed until Wi</td></tr>
+<tr><td>Cretaceous pachycephalosaurus man</td><td>Ground Wi</td><td>SN sentient</td><td>C</td><td>240,000</td><td>203,572</td><td>10.5</td><td>×0.88</td><td>3.42%</td><td>2</td><td>1.71%</td><td><b>13</b></td><td>5 raw · closed until Wi</td></tr>
+<tr><td>Wild boar</td><td>Ground Au</td><td>PL land prey</td><td>H</td><td>80,000</td><td>422,475</td><td>8.75</td><td>×3.48</td><td>11.33%</td><td>7.5</td><td>1.51%</td><td><b>12</b></td><td>50 raw · closed until Au</td></tr>
+<tr><td>Rattlesnake</td><td>Ground Sp</td><td>ML mid predator</td><td>C</td><td>7,000</td><td>13,235</td><td>2</td><td>×1.61</td><td>1.19%</td><td>1</td><td>1.19%</td><td><b>9</b></td><td>9 ✓ written</td></tr>
+<tr><td>Cretaceous kosmoceratops</td><td>Ground Wi</td><td>GZ grazer</td><td>H</td><td>1,179,000</td><td>1,419,995</td><td>10.5</td><td>×1.15</td><td>4.49%</td><td>4</td><td>1.12%</td><td><b>9</b></td><td>50 raw · closed until Wi</td></tr>
+<tr><td>Giant beetle</td><td>Ground Su</td><td>PL land prey</td><td>H</td><td>2,000,070</td><td>422,475</td><td>8.75</td><td>×0.31</td><td>1.01%</td><td>1</td><td>1.01%</td><td><b>8</b></td><td>50 raw · closed until Su</td></tr>
+<tr><td>Giant slug</td><td>Ground Sp</td><td>PL land prey</td><td>H</td><td>2,000,070</td><td>422,475</td><td>8.75</td><td>×0.31</td><td>1.01%</td><td>1</td><td>1.01%</td><td><b>8</b></td><td>8 ✓ written</td></tr>
+<tr><td>Giant grasshopper</td><td>Ground Su</td><td>PL land prey</td><td>H</td><td>2,000,070</td><td>422,475</td><td>8.75</td><td>×0.31</td><td>1.01%</td><td>1</td><td>1.01%</td><td><b>8</b></td><td>50 raw · closed until Su</td></tr>
+<tr><td>Skink man</td><td>Ground Su</td><td>SN sentient</td><td>C</td><td>35,250</td><td>203,572</td><td>2</td><td>×3.73</td><td>2.75%</td><td>3</td><td>0.92%</td><td><b>7</b></td><td>10 raw · closed until Su</td></tr>
+<tr><td>Dingo man</td><td>Ground Au</td><td>SN sentient</td><td>C</td><td>45,000</td><td>203,572</td><td>5</td><td>×3.10</td><td>5.72%</td><td>6.5</td><td>0.88%</td><td><b>7</b></td><td>1 raw · closed until Au</td></tr>
+<tr class="z"><td>Giant tick</td><td>Ground Wi</td><td>APX apex</td><td>A</td><td>2,000,070</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>50 raw · closed until Wi</td></tr>
+<tr class="z"><td>Giant brown recluse spider</td><td>Ground Sp</td><td>APX apex</td><td>A</td><td>2,000,070</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>5 ✓ written</td></tr>
+<tr class="z"><td>Giant bark scorpion</td><td>Ground Au</td><td>APX apex</td><td>A</td><td>666,730</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>25 raw · closed until Au</td></tr>
+<tr><td>Cretaceous triceratops man</td><td>Ground Sp</td><td>SN sentient</td><td>C</td><td>4,511,130</td><td>203,572</td><td>10.5</td><td>×0.25</td><td>0.97%</td><td>2</td><td>0.48%</td><td><b>4</b></td><td>4 ✓ written</td></tr>
+<tr><td>Cretaceous parasaurolophus</td><td>Ground Au</td><td>GZ grazer</td><td>H</td><td>3,742,000</td><td>1,419,995</td><td>10.5</td><td>×0.48</td><td>1.89%</td><td>4</td><td>0.47%</td><td><b>4</b></td><td>50 raw · closed until Au</td></tr>
+<tr><td>Cretaceous iguanodon</td><td>Ground Su</td><td>GZ grazer</td><td>H</td><td>4,536,000</td><td>1,419,995</td><td>10.5</td><td>×0.42</td><td>1.63%</td><td>4</td><td>0.41%</td><td><b>3</b></td><td>50 raw · closed until Su</td></tr>
+<tr><td>Cenozoic platybelodon</td><td>Ground Sp</td><td>GZ grazer</td><td>H</td><td>3,500,000</td><td>1,419,995</td><td>10.5</td><td>×0.51</td><td>1.98%</td><td>5</td><td>0.40%</td><td><b>3</b></td><td>3 ✓ written</td></tr>
+<tr><td>Giant wild boar</td><td>Ground Wi</td><td>PL land prey</td><td>H</td><td>783,200</td><td>422,475</td><td>8.75</td><td>×0.63</td><td>2.05%</td><td>7.5</td><td>0.27%</td><td><b>2</b></td><td>25 raw · closed until Wi</td></tr>
+<tr><td>Cretaceous triceratops</td><td>Ground Au</td><td>GZ grazer</td><td>H</td><td>9,000,000</td><td>1,419,995</td><td>10.5</td><td>×0.25</td><td>0.98%</td><td>4</td><td>0.24%</td><td><b>2</b></td><td>50 raw · closed until Au</td></tr>
+<tr><td>Cretaceous ankylosaurus</td><td>Ground Su</td><td>GZ grazer</td><td>H</td><td>6,396,000</td><td>1,419,995</td><td>10.5</td><td>×0.32</td><td>1.26%</td><td>4</td><td>0.32%</td><td><b>2</b></td><td>50 raw · closed until Su</td></tr>
+<tr><td>Coyote</td><td>Ground Wi</td><td>ML mid predator</td><td>C</td><td>15,000</td><td>13,235</td><td>2</td><td>×0.91</td><td>0.67%</td><td>6</td><td>0.11%</td><td><b>1</b></td><td>5 raw · closed until Wi</td></tr>
+<tr><td>Giant coyote</td><td>Ground Sp</td><td>ML mid predator</td><td>C</td><td>306,000</td><td>13,235</td><td>2</td><td>×0.25</td><td>0.18%</td><td>6</td><td>0.03%</td><td><b>1</b></td><td>1 ✓ written</td></tr>
+<tr><td>Giant skink</td><td>Ground Su</td><td>ML mid predator</td><td>C</td><td>203,500</td><td>13,235</td><td>2</td><td>×0.25</td><td>0.18%</td><td>1</td><td>0.18%</td><td><b>1</b></td><td>50 raw · closed until Su</td></tr>
+<tr><td>Wolf</td><td>Ground Wi</td><td>ML mid predator</td><td>C</td><td>40,000</td><td>13,235</td><td>2</td><td>×0.44</td><td>0.32%</td><td>5</td><td>0.06%</td><td><b>1</b></td><td>5 raw · closed until Wi</td></tr>
+<tr><td>Bear black</td><td>Ground Su</td><td>ML mid predator</td><td>C</td><td>120,000</td><td>13,235</td><td>2</td><td>×0.25</td><td>0.18%</td><td>1</td><td>0.18%</td><td><b>1</b></td><td>5 raw · closed until Su</td></tr>
+<tr class="z"><td>Cretaceous tyrannosaurus</td><td>Ground Su</td><td>APX apex</td><td>A</td><td>6,250,000</td><td colspan="6">off the ladder: its own raw FREQUENCY 2, already at or under the cap of 5</td><td><b>2</b></td><td>2 raw · closed until Su</td></tr>
+</table>
+<p style="margin:6px 0 0;font-size:13px"><b>Step by step</b> (the arithmetic the code does):</p>
+<ol style="margin:4px 0 0;font-size:13px">
+<li><b>Carboniferous arthropleura</b> (PL, level H): size factor (50,000 ÷ 422,475)<sup>−0.75</sup> = ×4.96 → kept to ×4.00; weight 8.75 × 4.00 = 35.00 of the level's 211.25; share of animals 78.49% × 35.00 ÷ 211.25 = 13.00%; ÷ mean group 1 = 13.005%; × 100 ÷ the top's 13.005% = 100.00 → <b>100</b></li>
+<li><b>Cretaceous triceratops man</b> (SN, level C): size factor (4,511,130 ÷ 203,572)<sup>−0.75</sup> = ×0.10 → kept to ×0.25; weight 10.5 × 0.25 = 2.62 of the level's 58.28; share of animals 21.51% × 2.62 ÷ 58.28 = 0.97%; ÷ mean group 2 = 0.484%; × 100 ÷ the top's 13.005% = 3.72 → <b>4</b></li>
+<li><b>Bear black</b> (ML, level C): size factor (120,000 ÷ 13,235)<sup>−0.75</sup> = ×0.19 → kept to ×0.25; weight 2 × 0.25 = 0.50 of the level's 58.28; share of animals 21.51% × 0.50 ÷ 58.28 = 0.18%; ÷ mean group 1 = 0.184%; × 100 ÷ the top's 13.005% = 1.42 → <b>1</b></li>
+</ol>
+<p class="note" style="margin:4px 0 0">Checked: my step-by-step recompute = the engine&#x27;s ROSTER.ladder = the stored value for all 28 members (0 mismatches). In DF&#x27;s raws, 8 of 8 spring members already hold exactly this FREQUENCY (read after the tool&#x27;s daily pass); out-of-season members keep their raw value (surface: held by stock) or rest at 0 (caverns).</p>
+<h4 style="margin:12px 0 4px">Flying ladder</h4>
+<p class="note" style="margin:0 0 4px">Pyramid <b>flying</b>: prey 80 / predators 20 / apex 0 (scheduler). Prey get 80 ÷ 100 = 80.00% of the animals, predators 20.00% (pyramid target).</p>
+<table class="t1 left" style="font-size:12px">
+<tr><th>Species</th><th>cast</th><th>slot</th><th>level</th><th>adult size</th><th>slot mean size</th><th>3 family</th><th>4 size factor</th><th>5 share of animals</th><th>6 mean group</th><th>÷ group</th><th>7 FREQUENCY</th><th>in DF's raws now (spring)</th></tr>
+<tr><td>Bird duck</td><td>Flying Wi</td><td>LB land bird</td><td>H</td><td>1,000</td><td>12,604</td><td>30</td><td>×4.00</td><td>58.83%</td><td>2.5</td><td>23.53%</td><td><b>100</b></td><td>50 raw · closed until Wi</td></tr>
+<tr><td>Bird swan</td><td>Flying Su</td><td>LB land bird</td><td>H</td><td>10,000</td><td>12,604</td><td>30</td><td>×1.19</td><td>17.49%</td><td>1.5</td><td>11.66%</td><td><b>50</b></td><td>50 raw · closed until Su</td></tr>
+<tr><td>Bird owl barn</td><td>Flying Sp</td><td>RP raptor</td><td>C</td><td>500</td><td>9,328</td><td>2</td><td>×4.00</td><td>4.85%</td><td>1</td><td>4.85%</td><td><b>21</b></td><td>21 ✓ written</td></tr>
+<tr><td>Bird kestrel</td><td>Flying Wi</td><td>RP raptor</td><td>C</td><td>250</td><td>9,328</td><td>2</td><td>×4.00</td><td>4.85%</td><td>1</td><td>4.85%</td><td><b>21</b></td><td>50 raw · closed until Wi</td></tr>
+<tr class="z"><td>Giant dragonfly</td><td>Flying Su; Fresh water Sp</td><td>APX apex</td><td>A</td><td>2,000,070</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>5 ✓ written</td></tr>
+<tr class="z"><td>Giant mosquito</td><td>Flying Wi</td><td>APX apex</td><td>A</td><td>2,000,070</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>50 raw · closed until Wi</td></tr>
+<tr class="z"><td>Giant buzzard</td><td>Flying Au</td><td>APX apex</td><td>A</td><td>209,800</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>25 raw · closed until Au</td></tr>
+<tr class="z"><td>Giant roach</td><td>Flying Sp</td><td>APX apex</td><td>A</td><td>2,000,070</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>5 ✓ written</td></tr>
+<tr><td>Bird buzzard</td><td>Flying Au</td><td>RP raptor</td><td>C</td><td>1,400</td><td>9,328</td><td>2</td><td>×4.00</td><td>4.85%</td><td>7.5</td><td>0.65%</td><td><b>3</b></td><td>50 raw · closed until Au</td></tr>
+<tr><td>Mantis man</td><td>Flying Wi</td><td>SN sentient</td><td>C</td><td>35,000</td><td>35,012</td><td>2</td><td>×1.00</td><td>1.21%</td><td>2</td><td>0.61%</td><td><b>3</b></td><td>10 raw · closed until Wi</td></tr>
+<tr><td>Giant sparrow</td><td>Flying Sp</td><td>LB land bird</td><td>H</td><td>200,210</td><td>12,604</td><td>30</td><td>×0.25</td><td>3.68%</td><td>7.5</td><td>0.49%</td><td><b>2</b></td><td>2 ✓ written</td></tr>
+<tr><td>Bat man</td><td>Flying Su</td><td>SN sentient</td><td>C</td><td>35,050</td><td>35,012</td><td>2</td><td>×1.00</td><td>1.21%</td><td>7.5</td><td>0.16%</td><td><b>1</b></td><td>10 raw · closed until Su</td></tr>
+<tr><td>Giant kestrel</td><td>Flying Su</td><td>RP raptor</td><td>C</td><td>201,750</td><td>9,328</td><td>2</td><td>×0.25</td><td>0.30%</td><td>1</td><td>0.30%</td><td><b>1</b></td><td>25 raw · closed until Su</td></tr>
+<tr><td>Fly man</td><td>Flying Au</td><td>SN sentient</td><td>C</td><td>35,000</td><td>35,012</td><td>2</td><td>×1.00</td><td>1.21%</td><td>3.5</td><td>0.35%</td><td><b>1</b></td><td>10 raw · closed until Au</td></tr>
+<tr><td>Roach man</td><td>Flying Sp</td><td>SN sentient</td><td>C</td><td>35,000</td><td>35,012</td><td>2</td><td>×1.00</td><td>1.21%</td><td>3.5</td><td>0.35%</td><td><b>1</b></td><td>1 ✓ written</td></tr>
+<tr><td>Giant mantis</td><td>Flying Au</td><td>RP raptor</td><td>C</td><td>2,000,070</td><td>9,328</td><td>2</td><td>×0.25</td><td>0.30%</td><td>1</td><td>0.30%</td><td><b>1</b></td><td>50 raw · closed until Au</td></tr>
+</table>
+<p style="margin:6px 0 0;font-size:13px"><b>Step by step</b> (the arithmetic the code does):</p>
+<ol style="margin:4px 0 0;font-size:13px">
+<li><b>Bird duck</b> (LB, level H): size factor (1,000 ÷ 12,604)<sup>−0.75</sup> = ×6.69 → kept to ×4.00; weight 30 × 4.00 = 120.00 of the level's 163.19; share of animals 80.00% × 120.00 ÷ 163.19 = 58.83%; ÷ mean group 2.5 = 23.531%; × 100 ÷ the top's 23.531% = 100.00 → <b>100</b></li>
+<li><b>Bat man</b> (SN, level C): size factor (35,050 ÷ 35,012)<sup>−0.75</sup> = ×1.00; weight 2 × 1.00 = 2.00 of the level's 33.00; share of animals 20.00% × 2.00 ÷ 33.00 = 1.21%; ÷ mean group 7.5 = 0.161%; × 100 ÷ the top's 23.531% = 0.69 → <b>1</b></li>
+<li><b>Giant mantis</b> (RP, level C): size factor (2,000,070 ÷ 9,328)<sup>−0.75</sup> = ×0.02 → kept to ×0.25; weight 2 × 0.25 = 0.50 of the level's 33.00; share of animals 20.00% × 0.50 ÷ 33.00 = 0.30%; ÷ mean group 1 = 0.303%; × 100 ÷ the top's 23.531% = 1.29 → <b>1</b></li>
+</ol>
+<p class="note" style="margin:4px 0 0">Checked: my step-by-step recompute = the engine&#x27;s ROSTER.ladder = the stored value for all 12 members (0 mismatches). In DF&#x27;s raws, 5 of 5 spring members already hold exactly this FREQUENCY (read after the tool&#x27;s daily pass); out-of-season members keep their raw value (surface: held by stock) or rest at 0 (caverns).</p>
+<h4 style="margin:12px 0 4px">Water ladder</h4>
+<p class="note" style="margin:0 0 4px">Pyramid <b>water, no ocean (fresh: lake, river, ponds)</b>: prey 87 / predators 13 / apex 3 (scheduler). Prey get 87 ÷ 100 = 87.00% of the animals, predators 13.00% (pyramid target).</p>
+<table class="t1 left" style="font-size:12px">
+<tr><th>Species</th><th>cast</th><th>slot</th><th>level</th><th>adult size</th><th>slot mean size</th><th>3 family</th><th>4 size factor</th><th>5 share of animals</th><th>6 mean group</th><th>÷ group</th><th>7 FREQUENCY</th><th>in DF's raws now (spring)</th></tr>
+<tr><td>Permian diplocaulus</td><td>Fresh water Wi</td><td>SH shore</td><td>H</td><td>10,000</td><td>150,504</td><td>6</td><td>×4.00</td><td>17.43%</td><td>1</td><td>17.43%</td><td><b>100</b></td><td>50 raw · closed until Wi</td></tr>
+<tr><td>Snapping turtle</td><td>Fresh water Sp</td><td>SH shore</td><td>H</td><td>30,000</td><td>150,504</td><td>6</td><td>×3.35</td><td>14.61%</td><td>1</td><td>14.61%</td><td><b>84</b></td><td>84 ✓ written</td></tr>
+<tr><td>Devonian hibbertopterus peachi</td><td>Fresh water Su/Au</td><td>FF freshwater fish</td><td>H</td><td>50,000</td><td>115,829</td><td>12</td><td>×1.88</td><td>16.36%</td><td>3</td><td>5.45%</td><td><b>31</b></td><td>50 raw · closed until Su/Au</td></tr>
+<tr><td>Bird osprey</td><td>Fresh water Su/Au</td><td>RP raptor</td><td>C</td><td>2,000</td><td>20,689</td><td>5</td><td>×4.00</td><td>5.27%</td><td>1</td><td>5.27%</td><td><b>30</b></td><td>50 raw · closed until Su/Au</td></tr>
+<tr><td>Devonian hibbertopterus scouleri</td><td>Fresh water Au/Wi</td><td>FF freshwater fish</td><td>H</td><td>60,000</td><td>115,829</td><td>12</td><td>×1.64</td><td>14.27%</td><td>3</td><td>4.76%</td><td><b>27</b></td><td>50 raw · closed until Au/Wi</td></tr>
+<tr><td>Fish carp</td><td>Fresh water Sp/Su</td><td>FF freshwater fish</td><td>H</td><td>40,000</td><td>115,829</td><td>12</td><td>×2.22</td><td>19.35%</td><td>7.5</td><td>2.58%</td><td><b>15</b></td><td>15 ✓ written</td></tr>
+<tr><td>Fish sturgeon</td><td>Fresh water Sp/Wi</td><td>FF freshwater fish</td><td>H</td><td>1,500,000</td><td>115,829</td><td>12</td><td>×0.25</td><td>2.18%</td><td>1</td><td>2.18%</td><td><b>13</b></td><td>13 ✓ written</td></tr>
+<tr><td>Carboniferous meganeura man</td><td>Fresh water Su</td><td>SN sentient</td><td>C</td><td>35,060</td><td>60,126</td><td>5</td><td>×1.50</td><td>1.98%</td><td>2</td><td>0.99%</td><td><b>6</b></td><td>10 raw · closed until Su</td></tr>
+<tr><td>Permian dimetrodon</td><td>Fresh water Su</td><td>ML mid predator</td><td>C</td><td>139,000</td><td>246,839</td><td>2</td><td>×1.54</td><td>0.81%</td><td>1</td><td>0.81%</td><td><b>5</b></td><td>5 raw · closed until Su</td></tr>
+<tr><td>Silurian jaekelopterus</td><td>Fresh water Sp</td><td>MW water mid predator</td><td>C</td><td>200,000</td><td>200,000</td><td>2</td><td>×1.00</td><td>0.53%</td><td>1</td><td>0.53%</td><td><b>3</b></td><td>3 ✓ written</td></tr>
+<tr><td>Giant alligator</td><td>Fresh water Su</td><td>SH shore</td><td>H</td><td>3,268,000</td><td>150,504</td><td>6</td><td>×0.25</td><td>1.09%</td><td>2</td><td>0.54%</td><td><b>3</b></td><td>25 raw · closed until Su</td></tr>
+<tr><td>Beaver man</td><td>Fresh water Au</td><td>SN sentient</td><td>C</td><td>45,000</td><td>60,126</td><td>6</td><td>×1.24</td><td>1.97%</td><td>3.5</td><td>0.56%</td><td><b>3</b></td><td>5 raw · closed until Au</td></tr>
+<tr><td>Giant osprey</td><td>Fresh water Wi</td><td>RP raptor</td><td>C</td><td>214,020</td><td>20,689</td><td>5</td><td>×0.25</td><td>0.33%</td><td>1</td><td>0.33%</td><td><b>2</b></td><td>25 raw · closed until Wi</td></tr>
+<tr><td>Devonian drepanopterus man</td><td>Fresh water Sp</td><td>SN sentient</td><td>C</td><td>35,250</td><td>60,126</td><td>2</td><td>×1.49</td><td>0.79%</td><td>2</td><td>0.39%</td><td><b>2</b></td><td>2 ✓ written</td></tr>
+<tr><td>Alligator man</td><td>Fresh water Wi</td><td>SN sentient</td><td>C</td><td>235,000</td><td>60,126</td><td>5</td><td>×0.36</td><td>0.47%</td><td>2</td><td>0.24%</td><td><b>1</b></td><td>5 raw · closed until Wi</td></tr>
+<tr><td>Alligator</td><td>Fresh water Wi</td><td>ML mid predator</td><td>C</td><td>400,000</td><td>246,839</td><td>2</td><td>×0.70</td><td>0.37%</td><td>2</td><td>0.18%</td><td><b>1</b></td><td>50 raw · closed until Wi</td></tr>
+<tr><td>Giant otter</td><td>Fresh water Au</td><td>ML mid predator</td><td>C</td><td>270,500</td><td>246,839</td><td>2</td><td>×0.93</td><td>0.49%</td><td>2.5</td><td>0.20%</td><td><b>1</b></td><td>25 raw · closed until Au</td></tr>
+<tr><td>Capybara, giant</td><td>Fresh water Au</td><td>SH shore</td><td>H</td><td>523,350</td><td>150,504</td><td>6</td><td>×0.39</td><td>1.71%</td><td>7.5</td><td>0.23%</td><td><b>1</b></td><td>25 raw · closed until Au</td></tr>
+</table>
+<p style="margin:6px 0 0;font-size:13px"><b>Step by step</b> (the arithmetic the code does):</p>
+<ol style="margin:4px 0 0;font-size:13px">
+<li><b>Permian diplocaulus</b> (SH, level H): size factor (10,000 ÷ 150,504)<sup>−0.75</sup> = ×7.64 → kept to ×4.00; weight 6 × 4.00 = 24.00 of the level's 119.79; share of animals 87.00% × 24.00 ÷ 119.79 = 17.43%; ÷ mean group 1 = 17.430%; × 100 ÷ the top's 17.430% = 100.00 → <b>100</b></li>
+<li><b>Giant osprey</b> (RP, level C): size factor (214,020 ÷ 20,689)<sup>−0.75</sup> = ×0.17 → kept to ×0.25; weight 5 × 0.25 = 1.25 of the level's 49.32; share of animals 13.00% × 1.25 ÷ 49.32 = 0.33%; ÷ mean group 1 = 0.329%; × 100 ÷ the top's 17.430% = 1.89 → <b>2</b></li>
+<li><b>Capybara, giant</b> (SH, level H): size factor (523,350 ÷ 150,504)<sup>−0.75</sup> = ×0.39; weight 6 × 0.39 = 2.36 of the level's 119.79; share of animals 87.00% × 2.36 ÷ 119.79 = 1.71%; ÷ mean group 7.5 = 0.228%; × 100 ÷ the top's 17.430% = 1.31 → <b>1</b></li>
+</ol>
+<p class="note" style="margin:4px 0 0">Checked: my step-by-step recompute = the engine&#x27;s ROSTER.ladder = the stored value for all 18 members (0 mismatches). In DF&#x27;s raws, 5 of 5 spring members already hold exactly this FREQUENCY (read after the tool&#x27;s daily pass); out-of-season members keep their raw value (surface: held by stock) or rest at 0 (caverns).</p>
+<h4 style="margin:12px 0 4px">Caverns 1–3 ladder</h4>
+<p class="note" style="margin:0 0 4px">Pyramid <b>cavern</b>: prey 60 / predators 27 / apex 13 (scheduler). Prey get 60 ÷ 87 = 68.97% of the animals, predators 31.03% (pyramid target).</p>
+<table class="t1 left" style="font-size:12px">
+<tr><th>Species</th><th>cast</th><th>slot</th><th>level</th><th>adult size</th><th>slot mean size</th><th>3 family</th><th>4 size factor</th><th>5 share of animals</th><th>6 mean group</th><th>÷ group</th><th>7 FREQUENCY</th><th>in DF's raws now (spring)</th></tr>
+<tr><td>Rat giant</td><td>Cavern 2 Sp</td><td>PL land prey</td><td>H</td><td>200,000</td><td>190,186</td><td>10</td><td>×0.96</td><td>4.12%</td><td>1</td><td>4.12%</td><td><b>100</b></td><td>100 ✓ written</td></tr>
+<tr><td>Manera</td><td>Cavern 3 Sp</td><td>SN sentient</td><td>C</td><td>60,000</td><td>76,271</td><td>10</td><td>×1.20</td><td>3.59%</td><td>1</td><td>3.59%</td><td><b>87</b></td><td>87 ✓ written</td></tr>
+<tr><td>Gremlin</td><td>Cavern 1 Su</td><td>SN sentient</td><td>C</td><td>10,000</td><td>76,271</td><td>2</td><td>×4.00</td><td>2.40%</td><td>1</td><td>2.40%</td><td><b>58</b></td><td>0 · rests until Su</td></tr>
+<tr><td>Drunian</td><td>Cavern 2 Au</td><td>PL land prey</td><td>H</td><td>50,000</td><td>190,186</td><td>10</td><td>×2.72</td><td>11.66%</td><td>7.5</td><td>1.55%</td><td><b>38</b></td><td>0 · rests until Au</td></tr>
+<tr><td>Cave floater</td><td>Cavern 3 Sp/Wi</td><td>LB land bird</td><td>H</td><td>40,000</td><td>20,000</td><td>12</td><td>×0.59</td><td>3.05%</td><td>2</td><td>1.53%</td><td><b>37</b></td><td>37 ✓ written</td></tr>
+<tr><td>Flesh ball</td><td>Cavern 3 Sp/Su/Au</td><td>FF freshwater fish</td><td>H</td><td>70,000</td><td>70,000</td><td>12</td><td>×1.00</td><td>5.14%</td><td>3.5</td><td>1.47%</td><td><b>36</b></td><td>36 ✓ written</td></tr>
+<tr><td>Mole dog naked</td><td>Cavern 1 Au</td><td>PL land prey</td><td>H</td><td>60,000</td><td>190,186</td><td>10</td><td>×2.38</td><td>10.17%</td><td>7.5</td><td>1.36%</td><td><b>33</b></td><td>0 · rests until Au</td></tr>
+<tr><td>Creeping eye</td><td>Cavern 3 Au/Wi</td><td>PL land prey</td><td>H</td><td>20,000</td><td>190,186</td><td>10</td><td>×4.00</td><td>17.12%</td><td>15</td><td>1.14%</td><td><b>28</b></td><td>0 · rests until Au/Wi</td></tr>
+<tr><td>Helmet snake</td><td>Cavern 1 Sp/Su/Wi</td><td>ML mid predator</td><td>C</td><td>50,000</td><td>97,400</td><td>2</td><td>×1.65</td><td>0.99%</td><td>1</td><td>0.99%</td><td><b>24</b></td><td>24 ✓ written</td></tr>
+<tr><td>Elk bird</td><td>Cavern 3 Sp</td><td>PL land prey</td><td>H</td><td>100,000</td><td>190,186</td><td>10</td><td>×1.62</td><td>6.93%</td><td>7.5</td><td>0.92%</td><td><b>22</b></td><td>22 ✓ written</td></tr>
+<tr><td>Bugbat</td><td>Cavern 1 Sp/Su; Cavern 2 Wi</td><td>LB land bird</td><td>H</td><td>10,000</td><td>20,000</td><td>12</td><td>×1.68</td><td>8.64%</td><td>10</td><td>0.86%</td><td><b>21</b></td><td>21 ✓ written</td></tr>
+<tr><td>Plump helmet man</td><td>Cavern 1 Wi</td><td>SN sentient</td><td>C</td><td>50,000</td><td>76,271</td><td>8</td><td>×1.37</td><td>3.29%</td><td>4</td><td>0.82%</td><td><b>20</b></td><td>0 · rests until Wi</td></tr>
+<tr><td>Toad giant cave</td><td>Cavern 1 Sp/Au/Wi; Cavern 3 Wi</td><td>MW water mid predator</td><td>C</td><td>200,000</td><td>288,450</td><td>2</td><td>×1.32</td><td>0.79%</td><td>1</td><td>0.79%</td><td><b>19</b></td><td>19 ✓ written</td></tr>
+<tr><td>Olm giant</td><td>Cavern 2 Sp/Su/Au/Wi</td><td>MW water mid predator</td><td>C</td><td>200,000</td><td>288,450</td><td>2</td><td>×1.32</td><td>0.79%</td><td>1</td><td>0.79%</td><td><b>19</b></td><td>19 ✓ written</td></tr>
+<tr><td>Troll</td><td>Cavern 1 Sp</td><td>SN sentient</td><td>C</td><td>250,000</td><td>76,271</td><td>5</td><td>×0.41</td><td>0.61%</td><td>1</td><td>0.61%</td><td><b>15</b></td><td>15 ✓ written</td></tr>
+<tr><td>Amphibian man</td><td>Cavern 2 Su</td><td>SN sentient</td><td>C</td><td>20,000</td><td>76,271</td><td>5</td><td>×2.73</td><td>4.09%</td><td>7.5</td><td>0.54%</td><td><b>13</b></td><td>0 · rests until Su</td></tr>
+<tr><td>Hungry head</td><td>Cavern 3 Su/Au</td><td>RP raptor</td><td>C</td><td>5,000</td><td>31,623</td><td>2</td><td>×3.99</td><td>2.39%</td><td>7.5</td><td>0.32%</td><td><b>8</b></td><td>0 · rests until Su/Au</td></tr>
+<tr><td>Bat giant</td><td>Cavern 2 Sp/Su/Au</td><td>ML mid predator</td><td>C</td><td>200,000</td><td>97,400</td><td>2</td><td>×0.58</td><td>0.35%</td><td>1</td><td>0.35%</td><td><b>8</b></td><td>8 ✓ written</td></tr>
+<tr><td>Crocodile cave</td><td>Cavern 1 Su/Au/Wi; Cavern 2 Au</td><td>MW water mid predator</td><td>C</td><td>600,000</td><td>288,450</td><td>2</td><td>×0.58</td><td>0.35%</td><td>1</td><td>0.35%</td><td><b>8</b></td><td>0 · rests until Su/Au/Wi</td></tr>
+<tr><td>Serpent man</td><td>Cavern 3 Wi</td><td>SN sentient</td><td>C</td><td>50,000</td><td>76,271</td><td>5</td><td>×1.37</td><td>2.06%</td><td>7.5</td><td>0.27%</td><td><b>7</b></td><td>0 · rests until Wi</td></tr>
+<tr><td>Draltha</td><td>Cavern 1 Sp/Su/Wi</td><td>PL land prey</td><td>H</td><td>2,500,000</td><td>190,186</td><td>10</td><td>×0.25</td><td>1.07%</td><td>3.5</td><td>0.31%</td><td><b>7</b></td><td>7 ✓ written</td></tr>
+<tr><td>Reptile man</td><td>Cavern 2 Wi</td><td>SN sentient</td><td>C</td><td>50,000</td><td>76,271</td><td>5</td><td>×1.37</td><td>2.06%</td><td>7.5</td><td>0.27%</td><td><b>7</b></td><td>0 · rests until Wi</td></tr>
+<tr><td>Troglodyte</td><td>Cavern 1 Au</td><td>SN sentient</td><td>C</td><td>60,000</td><td>76,271</td><td>5</td><td>×1.20</td><td>1.79%</td><td>7.5</td><td>0.24%</td><td><b>6</b></td><td>0 · rests until Au</td></tr>
+<tr class="z"><td>Jabberer</td><td>Cavern 3 Sp/Au</td><td>APX apex</td><td>A</td><td>4,500,000</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>5 ✓ written</td></tr>
+<tr><td>Rutherer</td><td>Cavern 2 Su/Wi; Cavern 3 Su</td><td>PL land prey</td><td>H</td><td>3,000,000</td><td>190,186</td><td>10</td><td>×0.25</td><td>1.07%</td><td>5</td><td>0.21%</td><td><b>5</b></td><td>0 · rests until Su/Wi</td></tr>
+<tr class="z"><td>Blind cave bear</td><td>Cavern 1 Sp/Su</td><td>APX apex</td><td>A</td><td>200,000</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>5 ✓ written</td></tr>
+<tr class="z"><td>Pond grabber</td><td>Cavern 2 Su/Au</td><td>APX apex</td><td>A</td><td>30,000</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>0 · rests until Su/Au</td></tr>
+<tr class="z"><td>Spider cave giant</td><td>Cavern 2 Wi; Cavern 3 Wi</td><td>APX apex</td><td>A</td><td>200,000</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>0 · rests until Wi</td></tr>
+<tr><td>Blind cave ogre</td><td>Cavern 3 Au</td><td>SN sentient</td><td>C</td><td>7,000,000</td><td>76,271</td><td>5</td><td>×0.25</td><td>0.37%</td><td>2</td><td>0.19%</td><td><b>5</b></td><td>0 · rests until Au</td></tr>
+<tr class="z"><td>Molemarian</td><td>Cavern 2 Sp; Cavern 3 Su</td><td>APX apex</td><td>A</td><td>90,000</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>5 ✓ written</td></tr>
+<tr><td>Bird swallow cave giant</td><td>Cavern 1 Au/Wi; Cavern 2 Sp</td><td>RP raptor</td><td>C</td><td>200,000</td><td>31,623</td><td>2</td><td>×0.25</td><td>0.15%</td><td>1</td><td>0.15%</td><td><b>4</b></td><td>4 ✓ written</td></tr>
+<tr><td>Voracious cave crawler</td><td>Cavern 3 Sp/Wi</td><td>ML mid predator</td><td>C</td><td>900,000</td><td>97,400</td><td>2</td><td>×0.25</td><td>0.15%</td><td>1</td><td>0.15%</td><td><b>4</b></td><td>4 ✓ written</td></tr>
+<tr><td>Cave swallow man</td><td>Cavern 2 Sp</td><td>SN sentient</td><td>C</td><td>35,050</td><td>76,271</td><td>2</td><td>×1.79</td><td>1.07%</td><td>7.5</td><td>0.14%</td><td><b>3</b></td><td>3 ✓ written</td></tr>
+<tr><td>Olm man</td><td>Cavern 2 Au</td><td>SN sentient</td><td>C</td><td>35,100</td><td>76,271</td><td>2</td><td>×1.79</td><td>1.07%</td><td>7.5</td><td>0.14%</td><td><b>3</b></td><td>0 · rests until Au</td></tr>
+<tr><td>Crundle</td><td>Cavern 2 Su/Wi</td><td>ML mid predator</td><td>C</td><td>10,000</td><td>97,400</td><td>2</td><td>×4.00</td><td>2.40%</td><td>17.5</td><td>0.14%</td><td><b>3</b></td><td>0 · rests until Su/Wi</td></tr>
+<tr><td>Ant man</td><td>Cavern 3 Su</td><td>SN sentient</td><td>C</td><td>200,000</td><td>76,271</td><td>2</td><td>×0.49</td><td>0.29%</td><td>7.5</td><td>0.04%</td><td><b>1</b></td><td>0 · rests until Su</td></tr>
+<tr class="z"><td>Cave dragon</td><td>Cavern 3 Su/Au</td><td>APX apex</td><td>A</td><td>15,000,000</td><td colspan="6">off the ladder: its own raw FREQUENCY 5, already at or under the cap of 5</td><td><b>5</b></td><td>0 · rests until Su/Au</td></tr>
+</table>
+<p style="margin:6px 0 0;font-size:13px"><b>Step by step</b> (the arithmetic the code does):</p>
+<ol style="margin:4px 0 0;font-size:13px">
+<li><b>Rat giant</b> (PL, level H): size factor (200,000 ÷ 190,186)<sup>−0.75</sup> = ×0.96; weight 10 × 0.96 = 9.63 of the level's 161.13; share of animals 68.97% × 9.63 ÷ 161.13 = 4.12%; ÷ mean group 1 = 4.121%; × 100 ÷ the top's 4.121% = 100.00 → <b>100</b></li>
+<li><b>Crocodile cave</b> (MW, level C): size factor (600,000 ÷ 288,450)<sup>−0.75</sup> = ×0.58; weight 2 × 0.58 = 1.15 of the level's 103.61; share of animals 31.03% × 1.15 ÷ 103.61 = 0.35%; ÷ mean group 1 = 0.346%; × 100 ÷ the top's 4.121% = 8.39 → <b>8</b></li>
+<li><b>Ant man</b> (SN, level C): size factor (200,000 ÷ 76,271)<sup>−0.75</sup> = ×0.49; weight 2 × 0.49 = 0.97 of the level's 103.61; share of animals 31.03% × 0.97 ÷ 103.61 = 0.29%; ÷ mean group 7.5 = 0.039%; × 100 ÷ the top's 4.121% = 0.94 → <b>1</b></li>
+</ol>
+<p class="note" style="margin:4px 0 0">Checked: my step-by-step recompute = the engine&#x27;s ROSTER.ladder = the stored value for all 31 members (0 mismatches). In DF&#x27;s raws, 18 of 18 spring members already hold exactly this FREQUENCY (read after the tool&#x27;s daily pass); out-of-season members keep their raw value (surface: held by stock) or rest at 0 (caverns).</p>
+</details>
+<details class="ex"><summary><b>Fort 2 · Ocean coast (region6 29,42)</b> · water bodies the tool registered: 5 cavern_pool fresh, 1 ocean salt · 76 ladder members, 0 mismatches</summary>
+<h4 style="margin:12px 0 4px">Ground ladder</h4>
+<p class="note" style="margin:0 0 4px">Pyramid <b>land</b>: prey 73 / predators 20 / apex 7 (scheduler). Prey get 73 ÷ 93 = 78.49% of the animals, predators 21.51% (pyramid target).</p>
+<table class="t1 left" style="font-size:12px">
+<tr><th>Species</th><th>cast</th><th>slot</th><th>level</th><th>adult size</th><th>slot mean size</th><th>3 family</th><th>4 size factor</th><th>5 share of animals</th><th>6 mean group</th><th>÷ group</th><th>7 FREQUENCY</th><th>in DF's raws now (spring)</th></tr>
+<tr><td>Red panda</td><td>Ground Su</td><td>GZ grazer</td><td>H</td><td>5,000</td><td>65,377</td><td>10.5</td><td>×4.00</td><td>19.16%</td><td>1</td><td>19.16%</td><td><b>100</b></td><td>50 raw · closed until Su</td></tr>
+<tr><td>Wombat</td><td>Ground Wi</td><td>GZ grazer</td><td>H</td><td>25,000</td><td>65,377</td><td>10.5</td><td>×2.06</td><td>9.85%</td><td>1</td><td>9.85%</td><td><b>51</b></td><td>50 raw · closed until Wi</td></tr>
+<tr><td>Bird kakapo</td><td>Ground Au</td><td>PL land prey</td><td>H</td><td>3,000</td><td>9,656</td><td>8.75</td><td>×2.40</td><td>9.59%</td><td>1</td><td>9.59%</td><td><b>50</b></td><td>50 raw · closed until Au</td></tr>
+<tr><td>Opossum</td><td>Ground Au</td><td>PL land prey</td><td>H</td><td>3,000</td><td>9,656</td><td>8.75</td><td>×2.40</td><td>9.59%</td><td>1</td><td>9.59%</td><td><b>50</b></td><td>50 raw · closed until Au</td></tr>
+<tr><td>Skunk</td><td>Ground Wi</td><td>PL land prey</td><td>H</td><td>4,000</td><td>9,656</td><td>8.75</td><td>×1.94</td><td>7.73%</td><td>1</td><td>7.73%</td><td><b>40</b></td><td>50 raw · closed until Wi</td></tr>
+<tr><td>Fox</td><td>Ground Sp</td><td>ML mid predator</td><td>C</td><td>6,000</td><td>26,456</td><td>2</td><td>×3.04</td><td>5.97%</td><td>1</td><td>5.97%</td><td><b>31</b></td><td>31 ✓ written</td></tr>
+<tr><td>Rattlesnake</td><td>Ground Wi</td><td>ML mid predator</td><td>C</td><td>7,000</td><td>26,456</td><td>2</td><td>×2.71</td><td>5.31%</td><td>1</td><td>5.31%</td><td><b>28</b></td><td>50 raw · closed until Wi</td></tr>
+<tr><td>Bobcat</td><td>Ground Su</td><td>ML mid predator</td><td>C</td><td>8,000</td><td>26,456</td><td>2</td><td>×2.45</td><td>4.81%</td><td>1</td><td>4.81%</td><td><b>25</b></td><td>5 raw · closed until Su</td></tr>
+<tr><td>Echidna</td><td>Ground Wi</td><td>PL land prey</td><td>H</td><td>10,000</td><td>9,656</td><td>8.75</td><td>×0.97</td><td>3.89%</td><td>1</td><td>3.89%</td><td><b>20</b></td><td>50 raw · closed until Wi</td></tr>
+<tr><td>Panda</td><td>Ground Sp/Au</td><td>GZ grazer</td><td>H</td><td>130,000</td><td>65,377</td><td>10.5</td><td>×0.60</td><td>2.86%</td><td>1</td><td>2.86%</td><td><b>15</b></td><td>15 ✓ written</td></tr>
+<tr><td>Bird turkey</td><td>Ground Su</td><td>PL land prey</td><td>H</td><td>5,000</td><td>9,656</td><td>8.75</td><td>×1.64</td><td>6.54%</td><td>2.5</td><td>2.62%</td><td><b>14</b></td><td>50 raw · closed until Su</td></tr>
+<tr><td>Deer</td><td>Ground Sp/Au</td><td>GZ grazer</td><td>H</td><td>140,000</td><td>65,377</td><td>10.5</td><td>×0.56</td><td>2.71%</td><td>2.5</td><td>1.08%</td><td><b>6</b></td><td>6 ✓ written</td></tr>
+<tr><td>Moose</td><td>Ground Su/Wi</td><td>GZ grazer</td><td>H</td><td>525,000</td><td>65,377</td><td>10.5</td><td>×0.25</td><td>1.20%</td><td>1</td><td>1.20%</td><td><b>6</b></td><td>50 raw · closed until Su/Wi</td></tr>
+<tr><td>Coyote</td><td>Ground Wi</td><td>ML mid predator</td><td>C</td><td>15,000</td><td>26,456</td><td>2</td><td>×1.53</td><td>3.00%</td><td>6</td><td>0.50%</td><td><b>3</b></td><td>5 raw · closed until Wi</td></tr>
+<tr><td>Tiger</td><td>Ground Au</td><td>ML mid predator</td><td>C</td><td>225,000</td><td>26,456</td><td>2</td><td>×0.25</td><td>0.49%</td><td>1</td><td>0.49%</td><td><b>3</b></td><td>5 raw · closed until Au</td></tr>
+<tr><td>Bear grizzly</td><td>Ground Sp/Su</td><td>ML mid predator</td><td>C</td><td>200,000</td><td>26,456</td><td>2</td><td>×0.25</td><td>0.49%</td><td>1</td><td>0.49%</td><td><b>3</b></td><td>3 ✓ written</td></tr>
+<tr><td>Gray langur</td><td>Ground Sp</td><td>PL land prey</td><td>H</td><td>15,000</td><td>9,656</td><td>8.75</td><td>×0.72</td><td>2.87%</td><td>7.5</td><td>0.38%</td><td><b>2</b></td><td>2 ✓ written</td></tr>
+<tr><td>Wolf</td><td>Ground Au/Wi</td><td>ML mid predator</td><td>C</td><td>40,000</td><td>26,456</td><td>2</td><td>×0.73</td><td>1.44%</td><td>5</td><td>0.29%</td><td><b>2</b></td><td>5 raw · closed until Au/Wi</td></tr>
+<tr><td>Bird emu</td><td>Ground Su</td><td>PL land prey</td><td>H</td><td>35,000</td><td>9,656</td><td>8.75</td><td>×0.38</td><td>1.52%</td><td>6</td><td>0.25%</td><td><b>1</b></td><td>50 raw · closed until Su</td></tr>
+<tr><td>Wild boar</td><td>Ground Sp</td><td>PL land prey</td><td>H</td><td>80,000</td><td>9,656</td><td>8.75</td><td>×0.25</td><td>1.00%</td><td>7.5</td><td>0.13%</td><td><b>1</b></td><td>1 ✓ written</td></tr>
+<tr class="z"><td>Cougar</td><td>Ground Su</td><td>APX apex</td><td>A</td><td>60,000</td><td colspan="6">off the ladder: its own raw FREQUENCY 5, already at or under the cap of 5</td><td><b>5</b></td><td>5 raw · closed until Su</td></tr>
+<tr class="z"><td>Bear black</td><td>Ground Sp/Au</td><td>APX apex</td><td>A</td><td>120,000</td><td colspan="6">off the ladder: its own raw FREQUENCY 5, already at or under the cap of 5</td><td><b>5</b></td><td>5 (its own raw, not rewritten)</td></tr>
+</table>
+<p style="margin:6px 0 0;font-size:13px"><b>Step by step</b> (the arithmetic the code does):</p>
+<ol style="margin:4px 0 0;font-size:13px">
+<li><b>Red panda</b> (GZ, level H): size factor (5,000 ÷ 65,377)<sup>−0.75</sup> = ×6.88 → kept to ×4.00; weight 10.5 × 4.00 = 42.00 of the level's 172.09; share of animals 78.49% × 42.00 ÷ 172.09 = 19.16%; ÷ mean group 1 = 19.158%; × 100 ÷ the top's 19.158% = 100.00 → <b>100</b></li>
+<li><b>Coyote</b> (ML, level C): size factor (15,000 ÷ 26,456)<sup>−0.75</sup> = ×1.53; weight 2 × 1.53 = 3.06 of the level's 21.94; share of animals 21.51% × 3.06 ÷ 21.94 = 3.00%; ÷ mean group 6 = 0.500%; × 100 ÷ the top's 19.158% = 2.61 → <b>3</b></li>
+<li><b>Wild boar</b> (PL, level H): size factor (80,000 ÷ 9,656)<sup>−0.75</sup> = ×0.20 → kept to ×0.25; weight 8.75 × 0.25 = 2.19 of the level's 172.09; share of animals 78.49% × 2.19 ÷ 172.09 = 1.00%; ÷ mean group 7.5 = 0.133%; × 100 ÷ the top's 19.158% = 0.69 → <b>1</b></li>
+</ol>
+<p class="note" style="margin:4px 0 0">Checked: my step-by-step recompute = the engine&#x27;s ROSTER.ladder = the stored value for all 20 members (0 mismatches). In DF&#x27;s raws, 6 of 6 spring members already hold exactly this FREQUENCY (read after the tool&#x27;s daily pass); out-of-season members keep their raw value (surface: held by stock) or rest at 0 (caverns).</p>
+<h4 style="margin:12px 0 4px">Flying ladder</h4>
+<p class="note" style="margin:0 0 4px">Pyramid <b>flying</b>: prey 80 / predators 20 / apex 0 (scheduler). Prey get 80 ÷ 100 = 80.00% of the animals, predators 20.00% (pyramid target).</p>
+<table class="t1 left" style="font-size:12px">
+<tr><th>Species</th><th>cast</th><th>slot</th><th>level</th><th>adult size</th><th>slot mean size</th><th>3 family</th><th>4 size factor</th><th>5 share of animals</th><th>6 mean group</th><th>÷ group</th><th>7 FREQUENCY</th><th>in DF's raws now (spring)</th></tr>
+<tr><td>Bird owl barn</td><td>Flying Sp/Au</td><td>RP raptor</td><td>C</td><td>500</td><td>1,414</td><td>2</td><td>×2.18</td><td>16.53%</td><td>1</td><td>16.53%</td><td><b>100</b></td><td>100 ✓ written</td></tr>
+<tr><td>Bird raven</td><td>Flying Sp/Su</td><td>LB land bird</td><td>H</td><td>1,200</td><td>1,095</td><td>30</td><td>×0.93</td><td>37.27%</td><td>6</td><td>6.21%</td><td><b>38</b></td><td>38 ✓ written</td></tr>
+<tr><td>Bird kea</td><td>Flying Au/Wi</td><td>LB land bird</td><td>H</td><td>1,000</td><td>1,095</td><td>30</td><td>×1.07</td><td>42.73%</td><td>7.5</td><td>5.70%</td><td><b>34</b></td><td>50 raw · closed until Au/Wi</td></tr>
+<tr><td>Bird eagle</td><td>Flying Su/Wi</td><td>RP raptor</td><td>C</td><td>4,000</td><td>1,414</td><td>2</td><td>×0.46</td><td>3.47%</td><td>1</td><td>3.47%</td><td><b>21</b></td><td>50 raw · closed until Su/Wi</td></tr>
+<tr class="z"><td>Bird falcon peregrine</td><td>Flying Su/Wi</td><td>APX apex</td><td>A</td><td>1,100</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>50 raw · closed until Su/Wi</td></tr>
+<tr class="z"><td>Bird owl great horned</td><td>Flying Sp/Au</td><td>APX apex</td><td>A</td><td>2,000</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>5 ✓ written</td></tr>
+</table>
+<p style="margin:6px 0 0;font-size:13px"><b>Step by step</b> (the arithmetic the code does):</p>
+<ol style="margin:4px 0 0;font-size:13px">
+<li><b>Bird owl barn</b> (RP, level C): size factor (500 ÷ 1,414)<sup>−0.75</sup> = ×2.18; weight 2 × 2.18 = 4.36 of the level's 5.28; share of animals 20.00% × 4.36 ÷ 5.28 = 16.53%; ÷ mean group 1 = 16.526%; × 100 ÷ the top's 16.526% = 100.00 → <b>100</b></li>
+<li><b>Bird kea</b> (LB, level H): size factor (1,000 ÷ 1,095)<sup>−0.75</sup> = ×1.07; weight 30 × 1.07 = 32.12 of the level's 60.14; share of animals 80.00% × 32.12 ÷ 60.14 = 42.73%; ÷ mean group 7.5 = 5.697%; × 100 ÷ the top's 16.526% = 34.48 → <b>34</b></li>
+<li><b>Bird eagle</b> (RP, level C): size factor (4,000 ÷ 1,414)<sup>−0.75</sup> = ×0.46; weight 2 × 0.46 = 0.92 of the level's 5.28; share of animals 20.00% × 0.92 ÷ 5.28 = 3.47%; ÷ mean group 1 = 3.474%; × 100 ÷ the top's 16.526% = 21.02 → <b>21</b></li>
+</ol>
+<p class="note" style="margin:4px 0 0">Checked: my step-by-step recompute = the engine&#x27;s ROSTER.ladder = the stored value for all 4 members (0 mismatches). In DF&#x27;s raws, 3 of 3 spring members already hold exactly this FREQUENCY (read after the tool&#x27;s daily pass); out-of-season members keep their raw value (surface: held by stock) or rest at 0 (caverns).</p>
+<h4 style="margin:12px 0 4px">Water ladder</h4>
+<p class="note" style="margin:0 0 4px">Pyramid <b>water, map with ocean</b>: prey 82 / predators 13 / apex 5 (scheduler). Prey get 82 ÷ 95 = 86.32% of the animals, predators 13.68% (pyramid target).</p>
+<table class="t1 left" style="font-size:12px">
+<tr><th>Species</th><th>cast</th><th>slot</th><th>level</th><th>adult size</th><th>slot mean size</th><th>3 family</th><th>4 size factor</th><th>5 share of animals</th><th>6 mean group</th><th>÷ group</th><th>7 FREQUENCY</th><th>in DF's raws now (spring)</th></tr>
+<tr><td>Fish stingray</td><td>Ocean Su/Au/Wi</td><td>FC coastal fish</td><td>H</td><td>5,000</td><td>20,645</td><td>12</td><td>×2.90</td><td>23.74%</td><td>1</td><td>23.74%</td><td><b>100</b></td><td>50 raw · closed until Su/Au/Wi</td></tr>
+<tr><td>Horseshoe crab</td><td>Ocean Wi</td><td>SH shore</td><td>H</td><td>2,000</td><td>7,830</td><td>6</td><td>×2.78</td><td>11.40%</td><td>1</td><td>11.40%</td><td><b>48</b></td><td>100 raw · closed until Wi</td></tr>
+<tr><td>Fish sunfish ocean</td><td>Ocean Su</td><td>PE open-sea fish</td><td>H</td><td>1,000,000</td><td>5,125,217</td><td>2</td><td>×3.41</td><td>4.65%</td><td>1</td><td>4.65%</td><td><b>20</b></td><td>50 raw · closed until Su</td></tr>
+<tr><td>Crab</td><td>Ocean Sp/Au</td><td>SH shore</td><td>H</td><td>8,000</td><td>7,830</td><td>6</td><td>×0.98</td><td>4.03%</td><td>1</td><td>4.03%</td><td><b>17</b></td><td>17 ✓ written</td></tr>
+<tr><td>Shark angel</td><td>Ocean Au</td><td>MW water mid predator</td><td>C</td><td>15,000</td><td>171,634</td><td>2</td><td>×4.00</td><td>3.37%</td><td>1</td><td>3.37%</td><td><b>14</b></td><td>50 raw · closed until Au</td></tr>
+<tr><td>Shark reef whitetip</td><td>Ocean Sp</td><td>MW water mid predator</td><td>C</td><td>15,000</td><td>171,634</td><td>2</td><td>×4.00</td><td>3.37%</td><td>1</td><td>3.37%</td><td><b>14</b></td><td>14 ✓ written</td></tr>
+<tr><td>Shark reef blacktip</td><td>Ocean Sp</td><td>MW water mid predator</td><td>C</td><td>15,000</td><td>171,634</td><td>2</td><td>×4.00</td><td>3.37%</td><td>1</td><td>3.37%</td><td><b>14</b></td><td>14 ✓ written</td></tr>
+<tr><td>Fish milkfish</td><td>Ocean Sp/Wi</td><td>FC coastal fish</td><td>H</td><td>10,000</td><td>20,645</td><td>12</td><td>×1.72</td><td>14.11%</td><td>5</td><td>2.82%</td><td><b>12</b></td><td>12 ✓ written</td></tr>
+<tr><td>Fish skate common</td><td>Ocean Au/Wi</td><td>FC coastal fish</td><td>H</td><td>100,000</td><td>20,645</td><td>12</td><td>×0.31</td><td>2.51%</td><td>1</td><td>2.51%</td><td><b>11</b></td><td>50 raw · closed until Au/Wi</td></tr>
+<tr><td>Fish ray manta</td><td>Ocean Au</td><td>PE open-sea fish</td><td>H</td><td>2,300,000</td><td>5,125,217</td><td>2</td><td>×1.82</td><td>2.49%</td><td>1</td><td>2.49%</td><td><b>10</b></td><td>50 raw · closed until Au</td></tr>
+<tr><td>Bird osprey</td><td>Ocean Sp/Su/Au/Wi</td><td>RP raptor</td><td>C</td><td>2,000</td><td>2,000</td><td>5</td><td>×1.00</td><td>2.10%</td><td>1</td><td>2.10%</td><td><b>9</b></td><td>9 ✓ written</td></tr>
+<tr><td>Fish bluefish</td><td>Ocean Sp/Su/Au</td><td>FC coastal fish</td><td>H</td><td>15,000</td><td>20,645</td><td>12</td><td>×1.27</td><td>10.41%</td><td>7.5</td><td>1.39%</td><td><b>6</b></td><td>6 ✓ written</td></tr>
+<tr class="z"><td>Shark mako shortfin</td><td>Ocean Wi</td><td>APX apex</td><td>A</td><td>80,000</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>50 raw · closed until Wi</td></tr>
+<tr class="z"><td>Shark blue</td><td>Ocean Au</td><td>APX apex</td><td>A</td><td>300,000</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>50 raw · closed until Au</td></tr>
+<tr class="z"><td>Sperm whale</td><td>Ocean Sp</td><td>APX apex</td><td>A</td><td>25,000,000</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>5 ✓ written</td></tr>
+<tr><td>Bird albatross</td><td>Ocean Sp/Su/Au/Wi</td><td>WB waterbird</td><td>H</td><td>8,000</td><td>8,000</td><td>9</td><td>×1.00</td><td>6.15%</td><td>5.5</td><td>1.12%</td><td><b>5</b></td><td>5 ✓ written</td></tr>
+<tr class="z"><td>Shark hammerhead</td><td>Ocean Su</td><td>APX apex</td><td>A</td><td>500,000</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>50 raw · closed until Su</td></tr>
+<tr><td>Shark basking</td><td>Ocean Wi</td><td>PE open-sea fish</td><td>H</td><td>15,000,000</td><td>5,125,217</td><td>2</td><td>×0.45</td><td>0.61%</td><td>1</td><td>0.61%</td><td><b>3</b></td><td>50 raw · closed until Wi</td></tr>
+<tr><td>Fish opah</td><td>Ocean Wi</td><td>MW water mid predator</td><td>C</td><td>200,000</td><td>171,634</td><td>2</td><td>×0.89</td><td>0.75%</td><td>1</td><td>0.75%</td><td><b>3</b></td><td>50 raw · closed until Wi</td></tr>
+<tr><td>Shark whale</td><td>Ocean Sp</td><td>PE open-sea fish</td><td>H</td><td>20,000,000</td><td>5,125,217</td><td>2</td><td>×0.36</td><td>0.49%</td><td>1</td><td>0.49%</td><td><b>2</b></td><td>2 ✓ written</td></tr>
+<tr><td>Fish swordfish</td><td>Ocean Wi</td><td>MW water mid predator</td><td>C</td><td>650,000</td><td>171,634</td><td>2</td><td>×0.37</td><td>0.31%</td><td>1</td><td>0.31%</td><td><b>1</b></td><td>50 raw · closed until Wi</td></tr>
+<tr><td>Shark great white</td><td>Ocean Au</td><td>MW water mid predator</td><td>C</td><td>2,000,000</td><td>171,634</td><td>2</td><td>×0.25</td><td>0.21%</td><td>1</td><td>0.21%</td><td><b>1</b></td><td>50 raw · closed until Au</td></tr>
+<tr><td>Fish cod</td><td>Ocean Sp/Su</td><td>FC coastal fish</td><td>H</td><td>50,000</td><td>20,645</td><td>12</td><td>×0.52</td><td>4.22%</td><td>12.5</td><td>0.34%</td><td><b>1</b></td><td>1 ✓ written</td></tr>
+<tr><td>Sea otter</td><td>Ocean Su/Au</td><td>SH shore</td><td>H</td><td>30,000</td><td>7,830</td><td>6</td><td>×0.37</td><td>1.50%</td><td>7.5</td><td>0.20%</td><td><b>1</b></td><td>50 raw · closed until Su/Au</td></tr>
+<tr><td>Orca</td><td>Ocean Su</td><td>MW water mid predator</td><td>C</td><td>5,000,000</td><td>171,634</td><td>2</td><td>×0.25</td><td>0.21%</td><td>6</td><td>0.04%</td><td><b>1</b></td><td>50 raw · closed until Su</td></tr>
+</table>
+<p style="margin:6px 0 0;font-size:13px"><b>Step by step</b> (the arithmetic the code does):</p>
+<ol style="margin:4px 0 0;font-size:13px">
+<li><b>Fish stingray</b> (FC, level H): size factor (5,000 ÷ 20,645)<sup>−0.75</sup> = ×2.90; weight 12 × 2.90 = 34.76 of the level's 126.40; share of animals 86.32% × 34.76 ÷ 126.40 = 23.74%; ÷ mean group 1 = 23.736%; × 100 ÷ the top's 23.736% = 100.00 → <b>100</b></li>
+<li><b>Fish opah</b> (MW, level C): size factor (200,000 ÷ 171,634)<sup>−0.75</sup> = ×0.89; weight 2 × 0.89 = 1.78 of the level's 32.52; share of animals 13.68% × 1.78 ÷ 32.52 = 0.75%; ÷ mean group 1 = 0.750%; × 100 ÷ the top's 23.736% = 3.16 → <b>3</b></li>
+<li><b>Orca</b> (MW, level C): size factor (5,000,000 ÷ 171,634)<sup>−0.75</sup> = ×0.08 → kept to ×0.25; weight 2 × 0.25 = 0.50 of the level's 32.52; share of animals 13.68% × 0.50 ÷ 32.52 = 0.21%; ÷ mean group 6 = 0.035%; × 100 ÷ the top's 23.736% = 0.15 → <b>1</b> (floor of 1)</li>
+</ol>
+<p class="note" style="margin:4px 0 0">Checked: my step-by-step recompute = the engine&#x27;s ROSTER.ladder = the stored value for all 21 members (0 mismatches). In DF&#x27;s raws, 10 of 10 spring members already hold exactly this FREQUENCY (read after the tool&#x27;s daily pass); out-of-season members keep their raw value (surface: held by stock) or rest at 0 (caverns).</p>
+<h4 style="margin:12px 0 4px">Caverns 1–3 ladder</h4>
+<p class="note" style="margin:0 0 4px">Pyramid <b>cavern</b>: prey 60 / predators 27 / apex 13 (scheduler). Prey get 60 ÷ 87 = 68.97% of the animals, predators 31.03% (pyramid target).</p>
+<table class="t1 left" style="font-size:12px">
+<tr><th>Species</th><th>cast</th><th>slot</th><th>level</th><th>adult size</th><th>slot mean size</th><th>3 family</th><th>4 size factor</th><th>5 share of animals</th><th>6 mean group</th><th>÷ group</th><th>7 FREQUENCY</th><th>in DF's raws now (spring)</th></tr>
+<tr><td>Rat giant</td><td>Cavern 2 Sp</td><td>PL land prey</td><td>H</td><td>200,000</td><td>190,186</td><td>10</td><td>×0.96</td><td>4.12%</td><td>1</td><td>4.12%</td><td><b>100</b></td><td>100 ✓ written</td></tr>
+<tr><td>Manera</td><td>Cavern 3 Sp</td><td>SN sentient</td><td>C</td><td>60,000</td><td>76,271</td><td>10</td><td>×1.20</td><td>3.59%</td><td>1</td><td>3.59%</td><td><b>87</b></td><td>87 ✓ written</td></tr>
+<tr><td>Gremlin</td><td>Cavern 1 Su</td><td>SN sentient</td><td>C</td><td>10,000</td><td>76,271</td><td>2</td><td>×4.00</td><td>2.40%</td><td>1</td><td>2.40%</td><td><b>58</b></td><td>0 · rests until Su</td></tr>
+<tr><td>Drunian</td><td>Cavern 2 Au</td><td>PL land prey</td><td>H</td><td>50,000</td><td>190,186</td><td>10</td><td>×2.72</td><td>11.66%</td><td>7.5</td><td>1.55%</td><td><b>38</b></td><td>0 · rests until Au</td></tr>
+<tr><td>Cave floater</td><td>Cavern 3 Sp/Wi</td><td>LB land bird</td><td>H</td><td>40,000</td><td>20,000</td><td>12</td><td>×0.59</td><td>3.05%</td><td>2</td><td>1.53%</td><td><b>37</b></td><td>37 ✓ written</td></tr>
+<tr><td>Flesh ball</td><td>Cavern 3 Sp/Su/Au</td><td>FF freshwater fish</td><td>H</td><td>70,000</td><td>70,000</td><td>12</td><td>×1.00</td><td>5.14%</td><td>3.5</td><td>1.47%</td><td><b>36</b></td><td>36 ✓ written</td></tr>
+<tr><td>Mole dog naked</td><td>Cavern 1 Au</td><td>PL land prey</td><td>H</td><td>60,000</td><td>190,186</td><td>10</td><td>×2.38</td><td>10.17%</td><td>7.5</td><td>1.36%</td><td><b>33</b></td><td>0 · rests until Au</td></tr>
+<tr><td>Creeping eye</td><td>Cavern 3 Au/Wi</td><td>PL land prey</td><td>H</td><td>20,000</td><td>190,186</td><td>10</td><td>×4.00</td><td>17.12%</td><td>15</td><td>1.14%</td><td><b>28</b></td><td>0 · rests until Au/Wi</td></tr>
+<tr><td>Helmet snake</td><td>Cavern 1 Sp/Su/Wi</td><td>ML mid predator</td><td>C</td><td>50,000</td><td>97,400</td><td>2</td><td>×1.65</td><td>0.99%</td><td>1</td><td>0.99%</td><td><b>24</b></td><td>24 ✓ written</td></tr>
+<tr><td>Elk bird</td><td>Cavern 3 Sp</td><td>PL land prey</td><td>H</td><td>100,000</td><td>190,186</td><td>10</td><td>×1.62</td><td>6.93%</td><td>7.5</td><td>0.92%</td><td><b>22</b></td><td>22 ✓ written</td></tr>
+<tr><td>Bugbat</td><td>Cavern 1 Sp/Su; Cavern 2 Wi</td><td>LB land bird</td><td>H</td><td>10,000</td><td>20,000</td><td>12</td><td>×1.68</td><td>8.64%</td><td>10</td><td>0.86%</td><td><b>21</b></td><td>21 ✓ written</td></tr>
+<tr><td>Plump helmet man</td><td>Cavern 1 Wi</td><td>SN sentient</td><td>C</td><td>50,000</td><td>76,271</td><td>8</td><td>×1.37</td><td>3.29%</td><td>4</td><td>0.82%</td><td><b>20</b></td><td>0 · rests until Wi</td></tr>
+<tr><td>Olm giant</td><td>Cavern 2 Sp/Su/Au/Wi</td><td>MW water mid predator</td><td>C</td><td>200,000</td><td>288,450</td><td>2</td><td>×1.32</td><td>0.79%</td><td>1</td><td>0.79%</td><td><b>19</b></td><td>19 ✓ written</td></tr>
+<tr><td>Toad giant cave</td><td>Cavern 1 Sp/Au/Wi; Cavern 3 Wi</td><td>MW water mid predator</td><td>C</td><td>200,000</td><td>288,450</td><td>2</td><td>×1.32</td><td>0.79%</td><td>1</td><td>0.79%</td><td><b>19</b></td><td>19 ✓ written</td></tr>
+<tr><td>Troll</td><td>Cavern 1 Sp</td><td>SN sentient</td><td>C</td><td>250,000</td><td>76,271</td><td>5</td><td>×0.41</td><td>0.61%</td><td>1</td><td>0.61%</td><td><b>15</b></td><td>15 ✓ written</td></tr>
+<tr><td>Amphibian man</td><td>Cavern 2 Su</td><td>SN sentient</td><td>C</td><td>20,000</td><td>76,271</td><td>5</td><td>×2.73</td><td>4.09%</td><td>7.5</td><td>0.54%</td><td><b>13</b></td><td>0 · rests until Su</td></tr>
+<tr><td>Hungry head</td><td>Cavern 3 Su/Au</td><td>RP raptor</td><td>C</td><td>5,000</td><td>31,623</td><td>2</td><td>×3.99</td><td>2.39%</td><td>7.5</td><td>0.32%</td><td><b>8</b></td><td>0 · rests until Su/Au</td></tr>
+<tr><td>Crocodile cave</td><td>Cavern 1 Su/Au/Wi; Cavern 2 Au</td><td>MW water mid predator</td><td>C</td><td>600,000</td><td>288,450</td><td>2</td><td>×0.58</td><td>0.35%</td><td>1</td><td>0.35%</td><td><b>8</b></td><td>0 · rests until Su/Au/Wi</td></tr>
+<tr><td>Bat giant</td><td>Cavern 2 Sp/Su/Au</td><td>ML mid predator</td><td>C</td><td>200,000</td><td>97,400</td><td>2</td><td>×0.58</td><td>0.35%</td><td>1</td><td>0.35%</td><td><b>8</b></td><td>8 ✓ written</td></tr>
+<tr><td>Serpent man</td><td>Cavern 3 Wi</td><td>SN sentient</td><td>C</td><td>50,000</td><td>76,271</td><td>5</td><td>×1.37</td><td>2.06%</td><td>7.5</td><td>0.27%</td><td><b>7</b></td><td>0 · rests until Wi</td></tr>
+<tr><td>Draltha</td><td>Cavern 1 Sp/Su/Wi</td><td>PL land prey</td><td>H</td><td>2,500,000</td><td>190,186</td><td>10</td><td>×0.25</td><td>1.07%</td><td>3.5</td><td>0.31%</td><td><b>7</b></td><td>7 ✓ written</td></tr>
+<tr><td>Reptile man</td><td>Cavern 2 Wi</td><td>SN sentient</td><td>C</td><td>50,000</td><td>76,271</td><td>5</td><td>×1.37</td><td>2.06%</td><td>7.5</td><td>0.27%</td><td><b>7</b></td><td>0 · rests until Wi</td></tr>
+<tr><td>Troglodyte</td><td>Cavern 1 Au</td><td>SN sentient</td><td>C</td><td>60,000</td><td>76,271</td><td>5</td><td>×1.20</td><td>1.79%</td><td>7.5</td><td>0.24%</td><td><b>6</b></td><td>0 · rests until Au</td></tr>
+<tr class="z"><td>Jabberer</td><td>Cavern 3 Sp/Au</td><td>APX apex</td><td>A</td><td>4,500,000</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>5 ✓ written</td></tr>
+<tr><td>Rutherer</td><td>Cavern 2 Su/Wi; Cavern 3 Su</td><td>PL land prey</td><td>H</td><td>3,000,000</td><td>190,186</td><td>10</td><td>×0.25</td><td>1.07%</td><td>5</td><td>0.21%</td><td><b>5</b></td><td>0 · rests until Su/Wi</td></tr>
+<tr class="z"><td>Blind cave bear</td><td>Cavern 1 Sp/Su</td><td>APX apex</td><td>A</td><td>200,000</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>5 ✓ written</td></tr>
+<tr><td>Blind cave ogre</td><td>Cavern 2 Sp</td><td>SN sentient</td><td>C</td><td>7,000,000</td><td>76,271</td><td>5</td><td>×0.25</td><td>0.37%</td><td>2</td><td>0.19%</td><td><b>5</b></td><td>5 ✓ written</td></tr>
+<tr class="z"><td>Spider cave giant</td><td>Cavern 2 Wi; Cavern 3 Wi</td><td>APX apex</td><td>A</td><td>200,000</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>0 · rests until Wi</td></tr>
+<tr class="z"><td>Pond grabber</td><td>Cavern 2 Su/Au</td><td>APX apex</td><td>A</td><td>30,000</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>0 · rests until Su/Au</td></tr>
+<tr class="z"><td>Molemarian</td><td>Cavern 2 Sp; Cavern 3 Su</td><td>APX apex</td><td>A</td><td>90,000</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>5 ✓ written</td></tr>
+<tr><td>Voracious cave crawler</td><td>Cavern 3 Sp/Wi</td><td>ML mid predator</td><td>C</td><td>900,000</td><td>97,400</td><td>2</td><td>×0.25</td><td>0.15%</td><td>1</td><td>0.15%</td><td><b>4</b></td><td>4 ✓ written</td></tr>
+<tr><td>Bird swallow cave giant</td><td>Cavern 1 Au/Wi; Cavern 2 Sp</td><td>RP raptor</td><td>C</td><td>200,000</td><td>31,623</td><td>2</td><td>×0.25</td><td>0.15%</td><td>1</td><td>0.15%</td><td><b>4</b></td><td>4 ✓ written</td></tr>
+<tr><td>Olm man</td><td>Cavern 2 Au</td><td>SN sentient</td><td>C</td><td>35,100</td><td>76,271</td><td>2</td><td>×1.79</td><td>1.07%</td><td>7.5</td><td>0.14%</td><td><b>3</b></td><td>0 · rests until Au</td></tr>
+<tr><td>Crundle</td><td>Cavern 2 Su/Wi</td><td>ML mid predator</td><td>C</td><td>10,000</td><td>97,400</td><td>2</td><td>×4.00</td><td>2.40%</td><td>17.5</td><td>0.14%</td><td><b>3</b></td><td>0 · rests until Su/Wi</td></tr>
+<tr><td>Cave swallow man</td><td>Cavern 3 Au</td><td>SN sentient</td><td>C</td><td>35,050</td><td>76,271</td><td>2</td><td>×1.79</td><td>1.07%</td><td>7.5</td><td>0.14%</td><td><b>3</b></td><td>0 · rests until Au</td></tr>
+<tr><td>Ant man</td><td>Cavern 3 Su</td><td>SN sentient</td><td>C</td><td>200,000</td><td>76,271</td><td>2</td><td>×0.49</td><td>0.29%</td><td>7.5</td><td>0.04%</td><td><b>1</b></td><td>0 · rests until Su</td></tr>
+<tr class="z"><td>Cave dragon</td><td>Cavern 3 Su/Au</td><td>APX apex</td><td>A</td><td>15,000,000</td><td colspan="6">off the ladder: its own raw FREQUENCY 5, already at or under the cap of 5</td><td><b>5</b></td><td>0 · rests until Su/Au</td></tr>
+</table>
+<p style="margin:6px 0 0;font-size:13px"><b>Step by step</b> (the arithmetic the code does):</p>
+<ol style="margin:4px 0 0;font-size:13px">
+<li><b>Rat giant</b> (PL, level H): size factor (200,000 ÷ 190,186)<sup>−0.75</sup> = ×0.96; weight 10 × 0.96 = 9.63 of the level's 161.13; share of animals 68.97% × 9.63 ÷ 161.13 = 4.12%; ÷ mean group 1 = 4.121%; × 100 ÷ the top's 4.121% = 100.00 → <b>100</b></li>
+<li><b>Bat giant</b> (ML, level C): size factor (200,000 ÷ 97,400)<sup>−0.75</sup> = ×0.58; weight 2 × 0.58 = 1.17 of the level's 103.61; share of animals 31.03% × 1.17 ÷ 103.61 = 0.35%; ÷ mean group 1 = 0.349%; × 100 ÷ the top's 4.121% = 8.47 → <b>8</b></li>
+<li><b>Ant man</b> (SN, level C): size factor (200,000 ÷ 76,271)<sup>−0.75</sup> = ×0.49; weight 2 × 0.49 = 0.97 of the level's 103.61; share of animals 31.03% × 0.97 ÷ 103.61 = 0.29%; ÷ mean group 7.5 = 0.039%; × 100 ÷ the top's 4.121% = 0.94 → <b>1</b></li>
+</ol>
+<p class="note" style="margin:4px 0 0">Checked: my step-by-step recompute = the engine&#x27;s ROSTER.ladder = the stored value for all 31 members (0 mismatches). In DF&#x27;s raws, 18 of 18 spring members already hold exactly this FREQUENCY (read after the tool&#x27;s daily pass); out-of-season members keep their raw value (surface: held by stock) or rest at 0 (caverns).</p>
+</details>
+<details class="ex"><summary><b>Fort 3 · Temperate freshwater lake + river (region6 16,17, 7x7 on the lake shore)</b> · water bodies: none at the spring-day-15 read (frozen); after the thaw 1 lake, 4 river, 5 pond · 95 ladder members, 0 mismatches</summary>
+<h4 style="margin:12px 0 4px">Ground ladder</h4>
+<p class="note" style="margin:0 0 4px">Pyramid <b>land</b>: prey 73 / predators 20 / apex 7 (scheduler). Prey get 73 ÷ 93 = 78.49% of the animals, predators 21.51% (pyramid target).</p>
+<table class="t1 left" style="font-size:12px">
+<tr><th>Species</th><th>cast</th><th>slot</th><th>level</th><th>adult size</th><th>slot mean size</th><th>3 family</th><th>4 size factor</th><th>5 share of animals</th><th>6 mean group</th><th>÷ group</th><th>7 FREQUENCY</th><th>in DF's raws now (spring)</th></tr>
+<tr><td>Carboniferous arthropleura</td><td>Ground Au</td><td>PL land prey</td><td>H</td><td>50,000</td><td>422,475</td><td>8.75</td><td>×4.00</td><td>13.00%</td><td>1</td><td>13.00%</td><td><b>100</b></td><td>50 raw · closed until Au</td></tr>
+<tr><td>Giant weasel</td><td>Ground Sp</td><td>PL land prey</td><td>H</td><td>201,400</td><td>422,475</td><td>8.75</td><td>×1.74</td><td>5.67%</td><td>1</td><td>5.67%</td><td><b>44</b></td><td>44 ✓ written</td></tr>
+<tr><td>Giant hamster</td><td>Ground Wi</td><td>PL land prey</td><td>H</td><td>201,040</td><td>422,475</td><td>8.75</td><td>×1.75</td><td>5.67%</td><td>1</td><td>5.67%</td><td><b>44</b></td><td>50 raw · closed until Wi</td></tr>
+<tr><td>Cretaceous colepiocephale</td><td>Ground Sp</td><td>GZ grazer</td><td>H</td><td>10,000</td><td>1,419,995</td><td>10.5</td><td>×4.00</td><td>15.61%</td><td>4</td><td>3.90%</td><td><b>30</b></td><td>30 ✓ written</td></tr>
+<tr><td>Weasel</td><td>Ground Au</td><td>ML mid predator</td><td>C</td><td>200</td><td>13,235</td><td>2</td><td>×4.00</td><td>2.95%</td><td>1</td><td>2.95%</td><td><b>23</b></td><td>50 raw · closed until Au</td></tr>
+<tr><td>Adder</td><td>Ground Au</td><td>ML mid predator</td><td>C</td><td>150</td><td>13,235</td><td>2</td><td>×4.00</td><td>2.95%</td><td>1</td><td>2.95%</td><td><b>23</b></td><td>30 raw · closed until Au</td></tr>
+<tr><td>Cretaceous pachycephalosaurus</td><td>Ground Wi</td><td>GZ grazer</td><td>H</td><td>410,000</td><td>1,419,995</td><td>10.5</td><td>×2.54</td><td>9.90%</td><td>4</td><td>2.48%</td><td><b>19</b></td><td>50 raw · closed until Wi</td></tr>
+<tr><td>Cretaceous pachycephalosaurus man</td><td>Ground Wi</td><td>SN sentient</td><td>C</td><td>240,000</td><td>203,572</td><td>10.5</td><td>×0.88</td><td>3.42%</td><td>2</td><td>1.71%</td><td><b>13</b></td><td>5 raw · closed until Wi</td></tr>
+<tr><td>Wild boar</td><td>Ground Au</td><td>PL land prey</td><td>H</td><td>80,000</td><td>422,475</td><td>8.75</td><td>×3.48</td><td>11.33%</td><td>7.5</td><td>1.51%</td><td><b>12</b></td><td>50 raw · closed until Au</td></tr>
+<tr><td>Rattlesnake</td><td>Ground Sp</td><td>ML mid predator</td><td>C</td><td>7,000</td><td>13,235</td><td>2</td><td>×1.61</td><td>1.19%</td><td>1</td><td>1.19%</td><td><b>9</b></td><td>9 ✓ written</td></tr>
+<tr><td>Cretaceous kosmoceratops</td><td>Ground Wi</td><td>GZ grazer</td><td>H</td><td>1,179,000</td><td>1,419,995</td><td>10.5</td><td>×1.15</td><td>4.49%</td><td>4</td><td>1.12%</td><td><b>9</b></td><td>50 raw · closed until Wi</td></tr>
+<tr><td>Giant beetle</td><td>Ground Su</td><td>PL land prey</td><td>H</td><td>2,000,070</td><td>422,475</td><td>8.75</td><td>×0.31</td><td>1.01%</td><td>1</td><td>1.01%</td><td><b>8</b></td><td>50 raw · closed until Su</td></tr>
+<tr><td>Giant slug</td><td>Ground Sp</td><td>PL land prey</td><td>H</td><td>2,000,070</td><td>422,475</td><td>8.75</td><td>×0.31</td><td>1.01%</td><td>1</td><td>1.01%</td><td><b>8</b></td><td>8 ✓ written</td></tr>
+<tr><td>Giant grasshopper</td><td>Ground Su</td><td>PL land prey</td><td>H</td><td>2,000,070</td><td>422,475</td><td>8.75</td><td>×0.31</td><td>1.01%</td><td>1</td><td>1.01%</td><td><b>8</b></td><td>50 raw · closed until Su</td></tr>
+<tr><td>Skink man</td><td>Ground Su</td><td>SN sentient</td><td>C</td><td>35,250</td><td>203,572</td><td>2</td><td>×3.73</td><td>2.75%</td><td>3</td><td>0.92%</td><td><b>7</b></td><td>10 raw · closed until Su</td></tr>
+<tr><td>Dingo man</td><td>Ground Au</td><td>SN sentient</td><td>C</td><td>45,000</td><td>203,572</td><td>5</td><td>×3.10</td><td>5.72%</td><td>6.5</td><td>0.88%</td><td><b>7</b></td><td>1 raw · closed until Au</td></tr>
+<tr class="z"><td>Giant tick</td><td>Ground Wi</td><td>APX apex</td><td>A</td><td>2,000,070</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>50 raw · closed until Wi</td></tr>
+<tr class="z"><td>Giant brown recluse spider</td><td>Ground Sp</td><td>APX apex</td><td>A</td><td>2,000,070</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>5 ✓ written</td></tr>
+<tr class="z"><td>Giant bark scorpion</td><td>Ground Au</td><td>APX apex</td><td>A</td><td>666,730</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>25 raw · closed until Au</td></tr>
+<tr><td>Cretaceous triceratops man</td><td>Ground Sp</td><td>SN sentient</td><td>C</td><td>4,511,130</td><td>203,572</td><td>10.5</td><td>×0.25</td><td>0.97%</td><td>2</td><td>0.48%</td><td><b>4</b></td><td>4 ✓ written</td></tr>
+<tr><td>Cretaceous parasaurolophus</td><td>Ground Au</td><td>GZ grazer</td><td>H</td><td>3,742,000</td><td>1,419,995</td><td>10.5</td><td>×0.48</td><td>1.89%</td><td>4</td><td>0.47%</td><td><b>4</b></td><td>50 raw · closed until Au</td></tr>
+<tr><td>Cretaceous iguanodon</td><td>Ground Su</td><td>GZ grazer</td><td>H</td><td>4,536,000</td><td>1,419,995</td><td>10.5</td><td>×0.42</td><td>1.63%</td><td>4</td><td>0.41%</td><td><b>3</b></td><td>50 raw · closed until Su</td></tr>
+<tr><td>Cenozoic platybelodon</td><td>Ground Sp</td><td>GZ grazer</td><td>H</td><td>3,500,000</td><td>1,419,995</td><td>10.5</td><td>×0.51</td><td>1.98%</td><td>5</td><td>0.40%</td><td><b>3</b></td><td>3 ✓ written</td></tr>
+<tr><td>Giant wild boar</td><td>Ground Wi</td><td>PL land prey</td><td>H</td><td>783,200</td><td>422,475</td><td>8.75</td><td>×0.63</td><td>2.05%</td><td>7.5</td><td>0.27%</td><td><b>2</b></td><td>25 raw · closed until Wi</td></tr>
+<tr><td>Cretaceous triceratops</td><td>Ground Au</td><td>GZ grazer</td><td>H</td><td>9,000,000</td><td>1,419,995</td><td>10.5</td><td>×0.25</td><td>0.98%</td><td>4</td><td>0.24%</td><td><b>2</b></td><td>50 raw · closed until Au</td></tr>
+<tr><td>Cretaceous ankylosaurus</td><td>Ground Su</td><td>GZ grazer</td><td>H</td><td>6,396,000</td><td>1,419,995</td><td>10.5</td><td>×0.32</td><td>1.26%</td><td>4</td><td>0.32%</td><td><b>2</b></td><td>50 raw · closed until Su</td></tr>
+<tr><td>Coyote</td><td>Ground Wi</td><td>ML mid predator</td><td>C</td><td>15,000</td><td>13,235</td><td>2</td><td>×0.91</td><td>0.67%</td><td>6</td><td>0.11%</td><td><b>1</b></td><td>5 raw · closed until Wi</td></tr>
+<tr><td>Giant coyote</td><td>Ground Sp</td><td>ML mid predator</td><td>C</td><td>306,000</td><td>13,235</td><td>2</td><td>×0.25</td><td>0.18%</td><td>6</td><td>0.03%</td><td><b>1</b></td><td>1 ✓ written</td></tr>
+<tr><td>Giant skink</td><td>Ground Su</td><td>ML mid predator</td><td>C</td><td>203,500</td><td>13,235</td><td>2</td><td>×0.25</td><td>0.18%</td><td>1</td><td>0.18%</td><td><b>1</b></td><td>50 raw · closed until Su</td></tr>
+<tr><td>Wolf</td><td>Ground Wi</td><td>ML mid predator</td><td>C</td><td>40,000</td><td>13,235</td><td>2</td><td>×0.44</td><td>0.32%</td><td>5</td><td>0.06%</td><td><b>1</b></td><td>5 raw · closed until Wi</td></tr>
+<tr><td>Bear black</td><td>Ground Su</td><td>ML mid predator</td><td>C</td><td>120,000</td><td>13,235</td><td>2</td><td>×0.25</td><td>0.18%</td><td>1</td><td>0.18%</td><td><b>1</b></td><td>5 raw · closed until Su</td></tr>
+<tr class="z"><td>Cretaceous tyrannosaurus</td><td>Ground Su</td><td>APX apex</td><td>A</td><td>6,250,000</td><td colspan="6">off the ladder: its own raw FREQUENCY 2, already at or under the cap of 5</td><td><b>2</b></td><td>2 raw · closed until Su</td></tr>
+</table>
+<p style="margin:6px 0 0;font-size:13px"><b>Step by step</b> (the arithmetic the code does):</p>
+<ol style="margin:4px 0 0;font-size:13px">
+<li><b>Carboniferous arthropleura</b> (PL, level H): size factor (50,000 ÷ 422,475)<sup>−0.75</sup> = ×4.96 → kept to ×4.00; weight 8.75 × 4.00 = 35.00 of the level's 211.25; share of animals 78.49% × 35.00 ÷ 211.25 = 13.00%; ÷ mean group 1 = 13.005%; × 100 ÷ the top's 13.005% = 100.00 → <b>100</b></li>
+<li><b>Cretaceous triceratops man</b> (SN, level C): size factor (4,511,130 ÷ 203,572)<sup>−0.75</sup> = ×0.10 → kept to ×0.25; weight 10.5 × 0.25 = 2.62 of the level's 58.28; share of animals 21.51% × 2.62 ÷ 58.28 = 0.97%; ÷ mean group 2 = 0.484%; × 100 ÷ the top's 13.005% = 3.72 → <b>4</b></li>
+<li><b>Bear black</b> (ML, level C): size factor (120,000 ÷ 13,235)<sup>−0.75</sup> = ×0.19 → kept to ×0.25; weight 2 × 0.25 = 0.50 of the level's 58.28; share of animals 21.51% × 0.50 ÷ 58.28 = 0.18%; ÷ mean group 1 = 0.184%; × 100 ÷ the top's 13.005% = 1.42 → <b>1</b></li>
+</ol>
+<p class="note" style="margin:4px 0 0">Checked: my step-by-step recompute = the engine&#x27;s ROSTER.ladder = the stored value for all 28 members (0 mismatches). In DF&#x27;s raws, 8 of 8 spring members already hold exactly this FREQUENCY (read after the tool&#x27;s daily pass); out-of-season members keep their raw value (surface: held by stock) or rest at 0 (caverns).</p>
+<h4 style="margin:12px 0 4px">Flying ladder</h4>
+<p class="note" style="margin:0 0 4px">Pyramid <b>flying</b>: prey 80 / predators 20 / apex 0 (scheduler). Prey get 80 ÷ 100 = 80.00% of the animals, predators 20.00% (pyramid target).</p>
+<table class="t1 left" style="font-size:12px">
+<tr><th>Species</th><th>cast</th><th>slot</th><th>level</th><th>adult size</th><th>slot mean size</th><th>3 family</th><th>4 size factor</th><th>5 share of animals</th><th>6 mean group</th><th>÷ group</th><th>7 FREQUENCY</th><th>in DF's raws now (spring)</th></tr>
+<tr><td>Bird duck</td><td>Flying Wi</td><td>LB land bird</td><td>H</td><td>1,000</td><td>12,604</td><td>30</td><td>×4.00</td><td>58.83%</td><td>2.5</td><td>23.53%</td><td><b>100</b></td><td>50 raw · closed until Wi</td></tr>
+<tr><td>Bird swan</td><td>Flying Su</td><td>LB land bird</td><td>H</td><td>10,000</td><td>12,604</td><td>30</td><td>×1.19</td><td>17.49%</td><td>1.5</td><td>11.66%</td><td><b>50</b></td><td>50 raw · closed until Su</td></tr>
+<tr><td>Bird owl barn</td><td>Flying Sp</td><td>RP raptor</td><td>C</td><td>500</td><td>9,328</td><td>2</td><td>×4.00</td><td>4.85%</td><td>1</td><td>4.85%</td><td><b>21</b></td><td>21 ✓ written</td></tr>
+<tr><td>Bird kestrel</td><td>Flying Wi</td><td>RP raptor</td><td>C</td><td>250</td><td>9,328</td><td>2</td><td>×4.00</td><td>4.85%</td><td>1</td><td>4.85%</td><td><b>21</b></td><td>50 raw · closed until Wi</td></tr>
+<tr class="z"><td>Giant dragonfly</td><td>Flying Su</td><td>APX apex</td><td>A</td><td>2,000,070</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>50 raw · closed until Su</td></tr>
+<tr class="z"><td>Giant mosquito</td><td>Flying Wi</td><td>APX apex</td><td>A</td><td>2,000,070</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>50 raw · closed until Wi</td></tr>
+<tr class="z"><td>Giant buzzard</td><td>Flying Au</td><td>APX apex</td><td>A</td><td>209,800</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>25 raw · closed until Au</td></tr>
+<tr class="z"><td>Giant roach</td><td>Flying Sp</td><td>APX apex</td><td>A</td><td>2,000,070</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>5 ✓ written</td></tr>
+<tr><td>Bird buzzard</td><td>Flying Au</td><td>RP raptor</td><td>C</td><td>1,400</td><td>9,328</td><td>2</td><td>×4.00</td><td>4.85%</td><td>7.5</td><td>0.65%</td><td><b>3</b></td><td>50 raw · closed until Au</td></tr>
+<tr><td>Mantis man</td><td>Flying Wi</td><td>SN sentient</td><td>C</td><td>35,000</td><td>35,012</td><td>2</td><td>×1.00</td><td>1.21%</td><td>2</td><td>0.61%</td><td><b>3</b></td><td>10 raw · closed until Wi</td></tr>
+<tr><td>Giant sparrow</td><td>Flying Sp</td><td>LB land bird</td><td>H</td><td>200,210</td><td>12,604</td><td>30</td><td>×0.25</td><td>3.68%</td><td>7.5</td><td>0.49%</td><td><b>2</b></td><td>2 ✓ written</td></tr>
+<tr><td>Bat man</td><td>Flying Su</td><td>SN sentient</td><td>C</td><td>35,050</td><td>35,012</td><td>2</td><td>×1.00</td><td>1.21%</td><td>7.5</td><td>0.16%</td><td><b>1</b></td><td>10 raw · closed until Su</td></tr>
+<tr><td>Giant kestrel</td><td>Flying Su</td><td>RP raptor</td><td>C</td><td>201,750</td><td>9,328</td><td>2</td><td>×0.25</td><td>0.30%</td><td>1</td><td>0.30%</td><td><b>1</b></td><td>25 raw · closed until Su</td></tr>
+<tr><td>Firefly man</td><td>Flying Au</td><td>SN sentient</td><td>C</td><td>35,000</td><td>35,012</td><td>2</td><td>×1.00</td><td>1.21%</td><td>3.5</td><td>0.35%</td><td><b>1</b></td><td>10 raw · closed until Au</td></tr>
+<tr><td>Roach man</td><td>Flying Sp</td><td>SN sentient</td><td>C</td><td>35,000</td><td>35,012</td><td>2</td><td>×1.00</td><td>1.21%</td><td>3.5</td><td>0.35%</td><td><b>1</b></td><td>1 ✓ written</td></tr>
+<tr><td>Giant mantis</td><td>Flying Au</td><td>RP raptor</td><td>C</td><td>2,000,070</td><td>9,328</td><td>2</td><td>×0.25</td><td>0.30%</td><td>1</td><td>0.30%</td><td><b>1</b></td><td>50 raw · closed until Au</td></tr>
+</table>
+<p style="margin:6px 0 0;font-size:13px"><b>Step by step</b> (the arithmetic the code does):</p>
+<ol style="margin:4px 0 0;font-size:13px">
+<li><b>Bird duck</b> (LB, level H): size factor (1,000 ÷ 12,604)<sup>−0.75</sup> = ×6.69 → kept to ×4.00; weight 30 × 4.00 = 120.00 of the level's 163.19; share of animals 80.00% × 120.00 ÷ 163.19 = 58.83%; ÷ mean group 2.5 = 23.531%; × 100 ÷ the top's 23.531% = 100.00 → <b>100</b></li>
+<li><b>Bat man</b> (SN, level C): size factor (35,050 ÷ 35,012)<sup>−0.75</sup> = ×1.00; weight 2 × 1.00 = 2.00 of the level's 33.00; share of animals 20.00% × 2.00 ÷ 33.00 = 1.21%; ÷ mean group 7.5 = 0.161%; × 100 ÷ the top's 23.531% = 0.69 → <b>1</b></li>
+<li><b>Giant mantis</b> (RP, level C): size factor (2,000,070 ÷ 9,328)<sup>−0.75</sup> = ×0.02 → kept to ×0.25; weight 2 × 0.25 = 0.50 of the level's 33.00; share of animals 20.00% × 0.50 ÷ 33.00 = 0.30%; ÷ mean group 1 = 0.303%; × 100 ÷ the top's 23.531% = 1.29 → <b>1</b></li>
+</ol>
+<p class="note" style="margin:4px 0 0">Checked: my step-by-step recompute = the engine&#x27;s ROSTER.ladder = the stored value for all 12 members (0 mismatches). In DF&#x27;s raws, 4 of 4 spring members already hold exactly this FREQUENCY (read after the tool&#x27;s daily pass); out-of-season members keep their raw value (surface: held by stock) or rest at 0 (caverns).</p>
+<h4 style="margin:12px 0 4px">Water ladder</h4>
+<p class="note" style="margin:0 0 4px">Pyramid <b>water, no ocean (fresh: lake, river, ponds)</b>: prey 87 / predators 13 / apex 3 (scheduler). Prey get 87 ÷ 100 = 87.00% of the animals, predators 13.00% (pyramid target).</p>
+<table class="t1 left" style="font-size:12px">
+<tr><th>Species</th><th>cast</th><th>slot</th><th>level</th><th>adult size</th><th>slot mean size</th><th>3 family</th><th>4 size factor</th><th>5 share of animals</th><th>6 mean group</th><th>÷ group</th><th>7 FREQUENCY</th><th>in DF's raws now (spring)</th></tr>
+<tr><td>Mink</td><td>Fresh water Su</td><td>SH shore</td><td>H</td><td>800</td><td>29,597</td><td>6</td><td>×4.00</td><td>11.65%</td><td>1</td><td>11.65%</td><td><b>100</b></td><td>50 raw · closed until Su</td></tr>
+<tr><td>Bird loon</td><td>Fresh water Au</td><td>WB waterbird</td><td>H</td><td>6,000</td><td>276,112</td><td>9</td><td>×4.00</td><td>17.48%</td><td>2.5</td><td>6.99%</td><td><b>60</b></td><td>50 raw · closed until Au</td></tr>
+<tr><td>Permian diplocaulus</td><td>Fresh water Sp</td><td>SH shore</td><td>H</td><td>10,000</td><td>29,597</td><td>6</td><td>×2.26</td><td>6.57%</td><td>1</td><td>6.57%</td><td><b>56</b></td><td>56 ✓ written</td></tr>
+<tr><td>Devonian hibbertopterus peachi</td><td>Fresh water Sp/Su/Au</td><td>FF freshwater fish</td><td>H</td><td>50,000</td><td>115,829</td><td>12</td><td>×1.88</td><td>10.94%</td><td>3</td><td>3.65%</td><td><b>31</b></td><td>31 ✓ written</td></tr>
+<tr><td>Devonian hibbertopterus scouleri</td><td>Fresh water Su/Au/Wi</td><td>FF freshwater fish</td><td>H</td><td>60,000</td><td>115,829</td><td>12</td><td>×1.64</td><td>9.54%</td><td>3</td><td>3.18%</td><td><b>27</b></td><td>50 raw · closed until Su/Au/Wi</td></tr>
+<tr><td>River otter</td><td>Fresh water Sp</td><td>SH shore</td><td>H</td><td>10,000</td><td>29,597</td><td>6</td><td>×2.26</td><td>6.57%</td><td>2.5</td><td>2.63%</td><td><b>23</b></td><td>23 ✓ written</td></tr>
+<tr><td>Giant loon</td><td>Fresh water Su</td><td>WB waterbird</td><td>H</td><td>242,160</td><td>276,112</td><td>9</td><td>×1.10</td><td>4.82%</td><td>2.5</td><td>1.93%</td><td><b>17</b></td><td>25 raw · closed until Su</td></tr>
+<tr><td>Bird osprey</td><td>Fresh water Wi</td><td>RP raptor</td><td>C</td><td>2,000</td><td>2,000</td><td>5</td><td>×1.00</td><td>1.85%</td><td>1</td><td>1.85%</td><td><b>16</b></td><td>50 raw · closed until Wi</td></tr>
+<tr><td>Fish carp</td><td>Fresh water Sp/Su/Wi</td><td>FF freshwater fish</td><td>H</td><td>40,000</td><td>115,829</td><td>12</td><td>×2.22</td><td>12.93%</td><td>7.5</td><td>1.72%</td><td><b>15</b></td><td>15 ✓ written</td></tr>
+<tr><td>Snapping turtle</td><td>Fresh water Au/Wi</td><td>ML mid predator</td><td>C</td><td>30,000</td><td>74,889</td><td>2</td><td>×1.99</td><td>1.47%</td><td>1</td><td>1.47%</td><td><b>13</b></td><td>50 raw · closed until Au/Wi</td></tr>
+<tr><td>Fish sturgeon</td><td>Fresh water Sp/Au/Wi</td><td>FF freshwater fish</td><td>H</td><td>1,500,000</td><td>115,829</td><td>12</td><td>×0.25</td><td>1.46%</td><td>1</td><td>1.46%</td><td><b>13</b></td><td>13 ✓ written</td></tr>
+<tr><td>Alligator snapping turtle</td><td>Fresh water Wi</td><td>SH shore</td><td>H</td><td>80,000</td><td>29,597</td><td>6</td><td>×0.47</td><td>1.38%</td><td>1</td><td>1.38%</td><td><b>12</b></td><td>50 raw · closed until Wi</td></tr>
+<tr><td>Mosquito man</td><td>Fresh water Wi</td><td>SN sentient</td><td>C</td><td>35,000</td><td>50,715</td><td>5</td><td>×1.32</td><td>2.45%</td><td>2</td><td>1.22%</td><td><b>11</b></td><td>10 raw · closed until Wi</td></tr>
+<tr><td>Triassic gerrothorax</td><td>Fresh water Su</td><td>ML mid predator</td><td>C</td><td>35,000</td><td>74,889</td><td>2</td><td>×1.77</td><td>1.31%</td><td>1</td><td>1.31%</td><td><b>11</b></td><td>50 raw · closed until Su</td></tr>
+<tr><td>Giant green tree frog</td><td>Fresh water Au</td><td>SH shore</td><td>H</td><td>200,700</td><td>29,597</td><td>6</td><td>×0.25</td><td>0.73%</td><td>1</td><td>0.73%</td><td><b>6</b></td><td>50 raw · closed until Au</td></tr>
+<tr><td>Fish lamprey sea</td><td>Fresh water Wi</td><td>MW water mid predator</td><td>C</td><td>20,000</td><td>20,000</td><td>2</td><td>×1.00</td><td>0.74%</td><td>1</td><td>0.74%</td><td><b>6</b></td><td>50 raw · closed until Wi</td></tr>
+<tr><td>Fly man</td><td>Fresh water Sp</td><td>SN sentient</td><td>C</td><td>35,000</td><td>50,715</td><td>5</td><td>×1.32</td><td>2.45%</td><td>3.5</td><td>0.70%</td><td><b>6</b></td><td>6 ✓ written</td></tr>
+<tr><td>Fish gar longnose</td><td>Fresh water Sp</td><td>MW water mid predator</td><td>C</td><td>20,000</td><td>20,000</td><td>2</td><td>×1.00</td><td>0.74%</td><td>1</td><td>0.74%</td><td><b>6</b></td><td>6 ✓ written</td></tr>
+<tr class="z"><td>Silurian jaekelopterus</td><td>Fresh water Sp</td><td>APX apex</td><td>A</td><td>200,000</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>5 ✓ written</td></tr>
+<tr class="z"><td>Fish pike</td><td>Fresh water Su</td><td>APX apex</td><td>A</td><td>35,000</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>50 raw · closed until Su</td></tr>
+<tr class="z"><td>Giant alligator</td><td>Fresh water Au/Wi</td><td>APX apex</td><td>A</td><td>3,268,000</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>25 raw · closed until Au/Wi</td></tr>
+<tr><td>Silurian jaekelopterus man</td><td>Fresh water Au</td><td>SN sentient</td><td>C</td><td>135,000</td><td>50,715</td><td>5</td><td>×0.48</td><td>0.89%</td><td>2</td><td>0.44%</td><td><b>4</b></td><td>5 raw · closed until Au</td></tr>
+<tr><td>Giant damselfly</td><td>Fresh water Au</td><td>WB waterbird</td><td>H</td><td>2,000,070</td><td>276,112</td><td>9</td><td>×0.25</td><td>1.09%</td><td>3</td><td>0.36%</td><td><b>3</b></td><td>50 raw · closed until Au</td></tr>
+<tr><td>Giant fly</td><td>Fresh water Sp</td><td>WB waterbird</td><td>H</td><td>2,000,070</td><td>276,112</td><td>9</td><td>×0.25</td><td>1.09%</td><td>7.5</td><td>0.15%</td><td><b>1</b></td><td>1 ✓ written</td></tr>
+<tr><td>Capybara, giant</td><td>Fresh water Su</td><td>SH shore</td><td>H</td><td>523,350</td><td>29,597</td><td>6</td><td>×0.25</td><td>0.73%</td><td>7.5</td><td>0.10%</td><td><b>1</b></td><td>25 raw · closed until Su</td></tr>
+<tr><td>Alligator</td><td>Fresh water Wi</td><td>ML mid predator</td><td>C</td><td>400,000</td><td>74,889</td><td>2</td><td>×0.28</td><td>0.21%</td><td>2</td><td>0.11%</td><td><b>1</b></td><td>50 raw · closed until Wi</td></tr>
+<tr><td>Otter man</td><td>Fresh water Su</td><td>SN sentient</td><td>C</td><td>40,000</td><td>50,715</td><td>2</td><td>×1.19</td><td>0.89%</td><td>7.5</td><td>0.12%</td><td><b>1</b></td><td>5 raw · closed until Su</td></tr>
+</table>
+<p style="margin:6px 0 0;font-size:13px"><b>Step by step</b> (the arithmetic the code does):</p>
+<ol style="margin:4px 0 0;font-size:13px">
+<li><b>Mink</b> (SH, level H): size factor (800 ÷ 29,597)<sup>−0.75</sup> = ×15.00 → kept to ×4.00; weight 6 × 4.00 = 24.00 of the level's 179.18; share of animals 87.00% × 24.00 ÷ 179.18 = 11.65%; ÷ mean group 1 = 11.653%; × 100 ÷ the top's 11.653% = 100.00 → <b>100</b></li>
+<li><b>Fly man</b> (SN, level C): size factor (35,000 ÷ 50,715)<sup>−0.75</sup> = ×1.32; weight 5 × 1.32 = 6.60 of the level's 35.08; share of animals 13.00% × 6.60 ÷ 35.08 = 2.45%; ÷ mean group 3.5 = 0.699%; × 100 ÷ the top's 11.653% = 6.00 → <b>6</b></li>
+<li><b>Otter man</b> (SN, level C): size factor (40,000 ÷ 50,715)<sup>−0.75</sup> = ×1.19; weight 2 × 1.19 = 2.39 of the level's 35.08; share of animals 13.00% × 2.39 ÷ 35.08 = 0.89%; ÷ mean group 7.5 = 0.118%; × 100 ÷ the top's 11.653% = 1.01 → <b>1</b></li>
+</ol>
+<p class="note" style="margin:4px 0 0">Checked: my step-by-step recompute = the engine&#x27;s ROSTER.ladder = the stored value for all 24 members (0 mismatches). In DF&#x27;s raws, 9 of 9 spring members already hold exactly this FREQUENCY (read after the tool&#x27;s daily pass); out-of-season members keep their raw value (surface: held by stock) or rest at 0 (caverns).</p>
+<h4 style="margin:12px 0 4px">Caverns 1–3 ladder</h4>
+<p class="note" style="margin:0 0 4px">Pyramid <b>cavern</b>: prey 60 / predators 27 / apex 13 (scheduler). Prey get 60 ÷ 87 = 68.97% of the animals, predators 31.03% (pyramid target).</p>
+<table class="t1 left" style="font-size:12px">
+<tr><th>Species</th><th>cast</th><th>slot</th><th>level</th><th>adult size</th><th>slot mean size</th><th>3 family</th><th>4 size factor</th><th>5 share of animals</th><th>6 mean group</th><th>÷ group</th><th>7 FREQUENCY</th><th>in DF's raws now (spring)</th></tr>
+<tr><td>Rat giant</td><td>Cavern 2 Sp</td><td>PL land prey</td><td>H</td><td>200,000</td><td>190,186</td><td>10</td><td>×0.96</td><td>4.12%</td><td>1</td><td>4.12%</td><td><b>100</b></td><td>100 ✓ written</td></tr>
+<tr><td>Manera</td><td>Cavern 3 Sp</td><td>SN sentient</td><td>C</td><td>60,000</td><td>76,271</td><td>10</td><td>×1.20</td><td>3.59%</td><td>1</td><td>3.59%</td><td><b>87</b></td><td>87 ✓ written</td></tr>
+<tr><td>Gremlin</td><td>Cavern 1 Su</td><td>SN sentient</td><td>C</td><td>10,000</td><td>76,271</td><td>2</td><td>×4.00</td><td>2.40%</td><td>1</td><td>2.40%</td><td><b>58</b></td><td>0 · rests until Su</td></tr>
+<tr><td>Drunian</td><td>Cavern 2 Au</td><td>PL land prey</td><td>H</td><td>50,000</td><td>190,186</td><td>10</td><td>×2.72</td><td>11.66%</td><td>7.5</td><td>1.55%</td><td><b>38</b></td><td>0 · rests until Au</td></tr>
+<tr><td>Cave floater</td><td>Cavern 3 Sp/Wi</td><td>LB land bird</td><td>H</td><td>40,000</td><td>20,000</td><td>12</td><td>×0.59</td><td>3.05%</td><td>2</td><td>1.53%</td><td><b>37</b></td><td>37 ✓ written</td></tr>
+<tr><td>Flesh ball</td><td>Cavern 3 Sp/Su/Au</td><td>FF freshwater fish</td><td>H</td><td>70,000</td><td>70,000</td><td>12</td><td>×1.00</td><td>5.14%</td><td>3.5</td><td>1.47%</td><td><b>36</b></td><td>36 ✓ written</td></tr>
+<tr><td>Mole dog naked</td><td>Cavern 1 Au</td><td>PL land prey</td><td>H</td><td>60,000</td><td>190,186</td><td>10</td><td>×2.38</td><td>10.17%</td><td>7.5</td><td>1.36%</td><td><b>33</b></td><td>0 · rests until Au</td></tr>
+<tr><td>Creeping eye</td><td>Cavern 3 Au/Wi</td><td>PL land prey</td><td>H</td><td>20,000</td><td>190,186</td><td>10</td><td>×4.00</td><td>17.12%</td><td>15</td><td>1.14%</td><td><b>28</b></td><td>0 · rests until Au/Wi</td></tr>
+<tr><td>Helmet snake</td><td>Cavern 1 Sp/Su/Wi</td><td>ML mid predator</td><td>C</td><td>50,000</td><td>97,400</td><td>2</td><td>×1.65</td><td>0.99%</td><td>1</td><td>0.99%</td><td><b>24</b></td><td>24 ✓ written</td></tr>
+<tr><td>Elk bird</td><td>Cavern 3 Sp</td><td>PL land prey</td><td>H</td><td>100,000</td><td>190,186</td><td>10</td><td>×1.62</td><td>6.93%</td><td>7.5</td><td>0.92%</td><td><b>22</b></td><td>22 ✓ written</td></tr>
+<tr><td>Bugbat</td><td>Cavern 1 Sp/Su; Cavern 2 Wi</td><td>LB land bird</td><td>H</td><td>10,000</td><td>20,000</td><td>12</td><td>×1.68</td><td>8.64%</td><td>10</td><td>0.86%</td><td><b>21</b></td><td>21 ✓ written</td></tr>
+<tr><td>Plump helmet man</td><td>Cavern 1 Wi</td><td>SN sentient</td><td>C</td><td>50,000</td><td>76,271</td><td>8</td><td>×1.37</td><td>3.29%</td><td>4</td><td>0.82%</td><td><b>20</b></td><td>0 · rests until Wi</td></tr>
+<tr><td>Toad giant cave</td><td>Cavern 1 Sp/Au/Wi; Cavern 3 Wi</td><td>MW water mid predator</td><td>C</td><td>200,000</td><td>288,450</td><td>2</td><td>×1.32</td><td>0.79%</td><td>1</td><td>0.79%</td><td><b>19</b></td><td>19 ✓ written</td></tr>
+<tr><td>Olm giant</td><td>Cavern 2 Sp/Su/Au/Wi</td><td>MW water mid predator</td><td>C</td><td>200,000</td><td>288,450</td><td>2</td><td>×1.32</td><td>0.79%</td><td>1</td><td>0.79%</td><td><b>19</b></td><td>19 ✓ written</td></tr>
+<tr><td>Troll</td><td>Cavern 1 Sp</td><td>SN sentient</td><td>C</td><td>250,000</td><td>76,271</td><td>5</td><td>×0.41</td><td>0.61%</td><td>1</td><td>0.61%</td><td><b>15</b></td><td>15 ✓ written</td></tr>
+<tr><td>Amphibian man</td><td>Cavern 2 Su</td><td>SN sentient</td><td>C</td><td>20,000</td><td>76,271</td><td>5</td><td>×2.73</td><td>4.09%</td><td>7.5</td><td>0.54%</td><td><b>13</b></td><td>0 · rests until Su</td></tr>
+<tr><td>Hungry head</td><td>Cavern 3 Su/Au</td><td>RP raptor</td><td>C</td><td>5,000</td><td>31,623</td><td>2</td><td>×3.99</td><td>2.39%</td><td>7.5</td><td>0.32%</td><td><b>8</b></td><td>0 · rests until Su/Au</td></tr>
+<tr><td>Bat giant</td><td>Cavern 2 Sp/Su/Au</td><td>ML mid predator</td><td>C</td><td>200,000</td><td>97,400</td><td>2</td><td>×0.58</td><td>0.35%</td><td>1</td><td>0.35%</td><td><b>8</b></td><td>8 ✓ written</td></tr>
+<tr><td>Crocodile cave</td><td>Cavern 1 Su/Au/Wi; Cavern 2 Au</td><td>MW water mid predator</td><td>C</td><td>600,000</td><td>288,450</td><td>2</td><td>×0.58</td><td>0.35%</td><td>1</td><td>0.35%</td><td><b>8</b></td><td>0 · rests until Su/Au/Wi</td></tr>
+<tr><td>Serpent man</td><td>Cavern 3 Wi</td><td>SN sentient</td><td>C</td><td>50,000</td><td>76,271</td><td>5</td><td>×1.37</td><td>2.06%</td><td>7.5</td><td>0.27%</td><td><b>7</b></td><td>0 · rests until Wi</td></tr>
+<tr><td>Draltha</td><td>Cavern 1 Sp/Su/Wi</td><td>PL land prey</td><td>H</td><td>2,500,000</td><td>190,186</td><td>10</td><td>×0.25</td><td>1.07%</td><td>3.5</td><td>0.31%</td><td><b>7</b></td><td>7 ✓ written</td></tr>
+<tr><td>Reptile man</td><td>Cavern 2 Wi</td><td>SN sentient</td><td>C</td><td>50,000</td><td>76,271</td><td>5</td><td>×1.37</td><td>2.06%</td><td>7.5</td><td>0.27%</td><td><b>7</b></td><td>0 · rests until Wi</td></tr>
+<tr><td>Troglodyte</td><td>Cavern 1 Au</td><td>SN sentient</td><td>C</td><td>60,000</td><td>76,271</td><td>5</td><td>×1.20</td><td>1.79%</td><td>7.5</td><td>0.24%</td><td><b>6</b></td><td>0 · rests until Au</td></tr>
+<tr class="z"><td>Jabberer</td><td>Cavern 3 Sp/Au</td><td>APX apex</td><td>A</td><td>4,500,000</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>5 ✓ written</td></tr>
+<tr><td>Rutherer</td><td>Cavern 2 Su/Wi; Cavern 3 Su</td><td>PL land prey</td><td>H</td><td>3,000,000</td><td>190,186</td><td>10</td><td>×0.25</td><td>1.07%</td><td>5</td><td>0.21%</td><td><b>5</b></td><td>0 · rests until Su/Wi</td></tr>
+<tr class="z"><td>Blind cave bear</td><td>Cavern 1 Sp/Su</td><td>APX apex</td><td>A</td><td>200,000</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>5 ✓ written</td></tr>
+<tr class="z"><td>Pond grabber</td><td>Cavern 2 Su/Au</td><td>APX apex</td><td>A</td><td>30,000</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>0 · rests until Su/Au</td></tr>
+<tr class="z"><td>Spider cave giant</td><td>Cavern 2 Wi; Cavern 3 Wi</td><td>APX apex</td><td>A</td><td>200,000</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>0 · rests until Wi</td></tr>
+<tr><td>Blind cave ogre</td><td>Cavern 3 Au</td><td>SN sentient</td><td>C</td><td>7,000,000</td><td>76,271</td><td>5</td><td>×0.25</td><td>0.37%</td><td>2</td><td>0.19%</td><td><b>5</b></td><td>0 · rests until Au</td></tr>
+<tr class="z"><td>Molemarian</td><td>Cavern 2 Sp; Cavern 3 Su</td><td>APX apex</td><td>A</td><td>90,000</td><td colspan="6">off the ladder: raw FREQUENCY over 5, capped at 5</td><td><b>5</b></td><td>5 ✓ written</td></tr>
+<tr><td>Bird swallow cave giant</td><td>Cavern 1 Au/Wi; Cavern 2 Sp</td><td>RP raptor</td><td>C</td><td>200,000</td><td>31,623</td><td>2</td><td>×0.25</td><td>0.15%</td><td>1</td><td>0.15%</td><td><b>4</b></td><td>4 ✓ written</td></tr>
+<tr><td>Voracious cave crawler</td><td>Cavern 3 Sp/Wi</td><td>ML mid predator</td><td>C</td><td>900,000</td><td>97,400</td><td>2</td><td>×0.25</td><td>0.15%</td><td>1</td><td>0.15%</td><td><b>4</b></td><td>4 ✓ written</td></tr>
+<tr><td>Cave swallow man</td><td>Cavern 2 Sp</td><td>SN sentient</td><td>C</td><td>35,050</td><td>76,271</td><td>2</td><td>×1.79</td><td>1.07%</td><td>7.5</td><td>0.14%</td><td><b>3</b></td><td>3 ✓ written</td></tr>
+<tr><td>Olm man</td><td>Cavern 2 Au</td><td>SN sentient</td><td>C</td><td>35,100</td><td>76,271</td><td>2</td><td>×1.79</td><td>1.07%</td><td>7.5</td><td>0.14%</td><td><b>3</b></td><td>0 · rests until Au</td></tr>
+<tr><td>Crundle</td><td>Cavern 2 Su/Wi</td><td>ML mid predator</td><td>C</td><td>10,000</td><td>97,400</td><td>2</td><td>×4.00</td><td>2.40%</td><td>17.5</td><td>0.14%</td><td><b>3</b></td><td>0 · rests until Su/Wi</td></tr>
+<tr><td>Ant man</td><td>Cavern 3 Su</td><td>SN sentient</td><td>C</td><td>200,000</td><td>76,271</td><td>2</td><td>×0.49</td><td>0.29%</td><td>7.5</td><td>0.04%</td><td><b>1</b></td><td>0 · rests until Su</td></tr>
+<tr class="z"><td>Cave dragon</td><td>Cavern 3 Su/Au</td><td>APX apex</td><td>A</td><td>15,000,000</td><td colspan="6">off the ladder: its own raw FREQUENCY 5, already at or under the cap of 5</td><td><b>5</b></td><td>0 · rests until Su/Au</td></tr>
+</table>
+<p style="margin:6px 0 0;font-size:13px"><b>Step by step</b> (the arithmetic the code does):</p>
+<ol style="margin:4px 0 0;font-size:13px">
+<li><b>Rat giant</b> (PL, level H): size factor (200,000 ÷ 190,186)<sup>−0.75</sup> = ×0.96; weight 10 × 0.96 = 9.63 of the level's 161.13; share of animals 68.97% × 9.63 ÷ 161.13 = 4.12%; ÷ mean group 1 = 4.121%; × 100 ÷ the top's 4.121% = 100.00 → <b>100</b></li>
+<li><b>Crocodile cave</b> (MW, level C): size factor (600,000 ÷ 288,450)<sup>−0.75</sup> = ×0.58; weight 2 × 0.58 = 1.15 of the level's 103.61; share of animals 31.03% × 1.15 ÷ 103.61 = 0.35%; ÷ mean group 1 = 0.346%; × 100 ÷ the top's 4.121% = 8.39 → <b>8</b></li>
+<li><b>Ant man</b> (SN, level C): size factor (200,000 ÷ 76,271)<sup>−0.75</sup> = ×0.49; weight 2 × 0.49 = 0.97 of the level's 103.61; share of animals 31.03% × 0.97 ÷ 103.61 = 0.29%; ÷ mean group 7.5 = 0.039%; × 100 ÷ the top's 4.121% = 0.94 → <b>1</b></li>
+</ol>
+<p class="note" style="margin:4px 0 0">Checked: my step-by-step recompute = the engine&#x27;s ROSTER.ladder = the stored value for all 31 members (0 mismatches). In DF&#x27;s raws, 18 of 18 spring members already hold exactly this FREQUENCY (read after the tool&#x27;s daily pass); out-of-season members keep their raw value (surface: held by stock) or rest at 0 (caverns).</p>
+</details>
+<h3 style="margin:18px 0 6px;font-size:15px">Season cast ladder, every layer: Fort 3 · Temperate freshwater lake + river (region6 16,17, 7x7 on the lake shore)</h3>
+<p class="note" style="margin:0 0 6px"><b>About this fort.</b> Region tile 16,17 is a two-tile temperate freshwater lake with a river around it. The 7x7 square takes in the lake shore, the river and dry land. It was read on day 15 of spring, when the lake and the river were still frozen (about 350,000 ice tiles on the 8 levels around the surface, and no liquid water). So the tool had no water body registered at that moment. The casts and ladders do not wait for that: the tool built them at embark, and the fresh-water cast below exists although no water had thawed yet. <b>After the thaw</b> (the same fort stepped on to tick 45,311, still spring), the tool registered <b>1 lake</b> (247,815 tiles, up to 5 deep), <b>4 river bodies</b> (10–23 tiles each; a small stream here) and <b>5 ponds</b> (16–101 tiles), all fresh water.</p>
+<p class="note" style="margin:0 0 6px">Each cell lists the season's cast members on that layer with the FREQUENCY the tool writes while they are open, then two shares: <b>waves</b> = its FREQUENCY ÷ the sum over the season's open members (what DF's pick follows on ground, flying and caverns), and <b>animals</b> = waves × its mean group. Apex predators are included at their capped value, because their entries stay open, but the scheduler is what actually places them. Vermin are listed but have no FREQUENCY role here. For water the tool draws itself (DF sends no water waves), so the share there is only its starting weight. In caverns DF may follow stock more than FREQUENCY <span class="chip c-pend">PENDING</span>.</p>
+<h4 style="margin:10px 0 4px">Ground</h4>
+<table class="t1 left" style="font-size:12px"><tr><th>Season</th><th>Member (slot)</th><th>FREQUENCY</th><th>share of waves</th><th>mean group</th><th>share of animals</th></tr>
+<tr><td rowspan="9"><b>Spring</b><br><span class="note">seed: Cenozoic platybelodon</span></td><td>Giant weasel (PL land prey)</td><td><b>44</b></td><td>42.3%</td><td>1</td><td>20.5%</td></tr>
+<tr><td>Cretaceous colepiocephale (GZ grazer)</td><td><b>30</b></td><td>28.8%</td><td>4</td><td>55.8%</td></tr>
+<tr><td>Rattlesnake (ML mid predator)</td><td><b>9</b></td><td>8.7%</td><td>1</td><td>4.2%</td></tr>
+<tr><td>Giant slug (PL land prey)</td><td><b>8</b></td><td>7.7%</td><td>1</td><td>3.7%</td></tr>
+<tr class="z"><td>Giant brown recluse spider (APX apex)</td><td><b>5</b></td><td>4.8%</td><td>1</td><td>2.3%</td></tr>
+<tr><td>Cretaceous triceratops man (SN sentient)</td><td><b>4</b></td><td>3.8%</td><td>2</td><td>3.7%</td></tr>
+<tr><td>Cenozoic platybelodon ★ (GZ grazer)</td><td><b>3</b></td><td>2.9%</td><td>5</td><td>7.0%</td></tr>
+<tr><td>Giant coyote (ML mid predator)</td><td><b>1</b></td><td>1.0%</td><td>6</td><td>2.8%</td></tr>
+<tr><td colspan="5" class="note">vermin: Snail, Bumblebee, Thrips</td></tr>
+<tr><td rowspan="9"><b>Summer</b><br><span class="note">seed: Cretaceous iguanodon</span></td><td>Giant beetle (PL land prey)</td><td><b>8</b></td><td>25.0%</td><td>1</td><td>13.1%</td></tr>
+<tr><td>Giant grasshopper (PL land prey)</td><td><b>8</b></td><td>25.0%</td><td>1</td><td>13.1%</td></tr>
+<tr><td>Skink man (SN sentient)</td><td><b>7</b></td><td>21.9%</td><td>3</td><td>34.4%</td></tr>
+<tr><td>Cretaceous iguanodon ★ (GZ grazer)</td><td><b>3</b></td><td>9.4%</td><td>4</td><td>19.7%</td></tr>
+<tr class="z"><td>Cretaceous tyrannosaurus (APX apex)</td><td><b>2</b></td><td>6.2%</td><td>1</td><td>3.3%</td></tr>
+<tr><td>Cretaceous ankylosaurus (GZ grazer)</td><td><b>2</b></td><td>6.2%</td><td>4</td><td>13.1%</td></tr>
+<tr><td>Bear black (ML mid predator)</td><td><b>1</b></td><td>3.1%</td><td>1</td><td>1.6%</td></tr>
+<tr><td>Giant skink (ML mid predator)</td><td><b>1</b></td><td>3.1%</td><td>1</td><td>1.6%</td></tr>
+<tr><td colspan="5" class="note">vermin: Rat, Honey bee, Thrips</td></tr>
+<tr><td rowspan="9"><b>Autumn</b><br><span class="note">seed: Cretaceous triceratops</span></td><td>Carboniferous arthropleura (PL land prey)</td><td><b>100</b></td><td>56.8%</td><td>1</td><td>32.2%</td></tr>
+<tr><td>Adder (ML mid predator)</td><td><b>23</b></td><td>13.1%</td><td>1</td><td>7.4%</td></tr>
+<tr><td>Weasel (ML mid predator)</td><td><b>23</b></td><td>13.1%</td><td>1</td><td>7.4%</td></tr>
+<tr><td>Wild boar (PL land prey)</td><td><b>12</b></td><td>6.8%</td><td>7.5</td><td>29.0%</td></tr>
+<tr><td>Dingo man (SN sentient)</td><td><b>7</b></td><td>4.0%</td><td>6.5</td><td>14.7%</td></tr>
+<tr class="z"><td>Giant bark scorpion (APX apex)</td><td><b>5</b></td><td>2.8%</td><td>1</td><td>1.6%</td></tr>
+<tr><td>Cretaceous parasaurolophus (GZ grazer)</td><td><b>4</b></td><td>2.3%</td><td>4</td><td>5.2%</td></tr>
+<tr><td>Cretaceous triceratops ★ (GZ grazer)</td><td><b>2</b></td><td>1.1%</td><td>4</td><td>2.6%</td></tr>
+<tr><td colspan="5" class="note">vermin: Honey bee, Roach large, Bumblebee</td></tr>
+<tr><td rowspan="9"><b>Winter</b><br><span class="note">seed: Cretaceous pachycephalosaurus</span></td><td>Giant hamster (PL land prey)</td><td><b>44</b></td><td>46.8%</td><td>1</td><td>20.7%</td></tr>
+<tr><td>Cretaceous pachycephalosaurus ★ (GZ grazer)</td><td><b>19</b></td><td>20.2%</td><td>4</td><td>35.7%</td></tr>
+<tr><td>Cretaceous pachycephalosaurus man (SN sentient)</td><td><b>13</b></td><td>13.8%</td><td>2</td><td>12.2%</td></tr>
+<tr><td>Cretaceous kosmoceratops (GZ grazer)</td><td><b>9</b></td><td>9.6%</td><td>4</td><td>16.9%</td></tr>
+<tr class="z"><td>Giant tick (APX apex)</td><td><b>5</b></td><td>5.3%</td><td>1</td><td>2.3%</td></tr>
+<tr><td>Giant wild boar (PL land prey)</td><td><b>2</b></td><td>2.1%</td><td>7.5</td><td>7.0%</td></tr>
+<tr><td>Wolf (ML mid predator)</td><td><b>1</b></td><td>1.1%</td><td>5</td><td>2.3%</td></tr>
+<tr><td>Coyote (ML mid predator)</td><td><b>1</b></td><td>1.1%</td><td>6</td><td>2.8%</td></tr>
+<tr><td colspan="5" class="note">vermin: Spider jumping, Grasshopper, Beetle</td></tr>
+</table>
+<h4 style="margin:10px 0 4px">Flying</h4>
+<table class="t1 left" style="font-size:12px"><tr><th>Season</th><th>Member (slot)</th><th>FREQUENCY</th><th>share of waves</th><th>mean group</th><th>share of animals</th></tr>
+<tr><td rowspan="5"><b>Spring</b><br><span class="note">seed: Roach man</span></td><td>Bird owl barn (RP raptor)</td><td><b>21</b></td><td>72.4%</td><td>1</td><td>27.3%</td></tr>
+<tr class="z"><td>Giant roach (APX apex)</td><td><b>5</b></td><td>17.2%</td><td>7.5</td><td>48.7%</td></tr>
+<tr><td>Giant sparrow (LB land bird)</td><td><b>2</b></td><td>6.9%</td><td>7.5</td><td>19.5%</td></tr>
+<tr><td>Roach man ★ (SN sentient)</td><td><b>1</b></td><td>3.4%</td><td>3.5</td><td>4.5%</td></tr>
+<tr><td colspan="5" class="note">vermin: Sparrow, Moth</td></tr>
+<tr><td rowspan="5"><b>Summer</b><br><span class="note">seed: Bat man</span></td><td>Bird swan (LB land bird)</td><td><b>50</b></td><td>87.7%</td><td>1.5</td><td>84.7%</td></tr>
+<tr class="z"><td>Giant dragonfly (APX apex)</td><td><b>5</b></td><td>8.8%</td><td>1</td><td>5.6%</td></tr>
+<tr><td>Bat man ★ (SN sentient)</td><td><b>1</b></td><td>1.8%</td><td>7.5</td><td>8.5%</td></tr>
+<tr><td>Giant kestrel (RP raptor)</td><td><b>1</b></td><td>1.8%</td><td>1</td><td>1.1%</td></tr>
+<tr><td colspan="5" class="note">vermin: Moth, Bird rw blackbird</td></tr>
+<tr class="z"><td rowspan="5"><b>Autumn</b><br><span class="note">seed: Giant mantis</span></td><td>Giant buzzard (APX apex)</td><td><b>5</b></td><td>50.0%</td><td>7.5</td><td>58.1%</td></tr>
+<tr><td>Bird buzzard (RP raptor)</td><td><b>3</b></td><td>30.0%</td><td>7.5</td><td>34.9%</td></tr>
+<tr><td>Giant mantis ★ (RP raptor)</td><td><b>1</b></td><td>10.0%</td><td>1</td><td>1.6%</td></tr>
+<tr><td>Firefly man (SN sentient)</td><td><b>1</b></td><td>10.0%</td><td>3.5</td><td>5.4%</td></tr>
+<tr><td colspan="5" class="note">vermin: Firefly, Bird crow, Pixie</td></tr>
+<tr><td rowspan="5"><b>Winter</b><br><span class="note">seed: Mantis man</span></td><td>Bird duck (LB land bird)</td><td><b>100</b></td><td>77.5%</td><td>2.5</td><td>88.7%</td></tr>
+<tr><td>Bird kestrel (RP raptor)</td><td><b>21</b></td><td>16.3%</td><td>1</td><td>7.4%</td></tr>
+<tr class="z"><td>Giant mosquito (APX apex)</td><td><b>5</b></td><td>3.9%</td><td>1</td><td>1.8%</td></tr>
+<tr><td>Mantis man ★ (SN sentient)</td><td><b>3</b></td><td>2.3%</td><td>2</td><td>2.1%</td></tr>
+<tr><td colspan="5" class="note">vermin: Fairy, Bird rw blackbird</td></tr>
+</table>
+<h4 style="margin:10px 0 4px">Fresh water (lake, river, ponds)</h4>
+<table class="t1 left" style="font-size:12px"><tr><th>Season</th><th>Member (slot)</th><th>FREQUENCY</th><th>share of waves</th><th>mean group</th><th>share of animals</th></tr>
+<tr><td rowspan="10"><b>Spring</b><br><span class="note">seed: Giant fly</span></td><td>Permian diplocaulus (SH shore)</td><td><b>56</b></td><td>35.9%</td><td>1</td><td>15.1%</td></tr>
+<tr><td>Devonian hibbertopterus peachi (FF freshwater fish)</td><td><b>31</b></td><td>19.9%</td><td>3</td><td>25.0%</td></tr>
+<tr><td>River otter (SH shore)</td><td><b>23</b></td><td>14.7%</td><td>2.5</td><td>15.5%</td></tr>
+<tr><td>Fish carp (FF freshwater fish)</td><td><b>15</b></td><td>9.6%</td><td>7.5</td><td>30.3%</td></tr>
+<tr><td>Fish sturgeon (FF freshwater fish)</td><td><b>13</b></td><td>8.3%</td><td>1</td><td>3.5%</td></tr>
+<tr><td>Fish gar longnose (MW water mid predator)</td><td><b>6</b></td><td>3.8%</td><td>1</td><td>1.6%</td></tr>
+<tr><td>Fly man (SN sentient)</td><td><b>6</b></td><td>3.8%</td><td>3.5</td><td>5.7%</td></tr>
+<tr class="z"><td>Silurian jaekelopterus (APX apex)</td><td><b>5</b></td><td>3.2%</td><td>1</td><td>1.3%</td></tr>
+<tr><td>Giant fly ★ (WB waterbird)</td><td><b>1</b></td><td>0.6%</td><td>7.5</td><td>2.0%</td></tr>
+<tr><td colspan="5" class="note">vermin: Fish molly sailfin, Carboniferous meganeura</td></tr>
+<tr><td rowspan="10"><b>Summer</b><br><span class="note">seed: Capybara, giant</span></td><td>Mink (SH shore)</td><td><b>100</b></td><td>48.1%</td><td>1</td><td>21.7%</td></tr>
+<tr><td>Devonian hibbertopterus peachi (FF freshwater fish)</td><td><b>31</b></td><td>14.9%</td><td>3</td><td>20.2%</td></tr>
+<tr><td>Devonian hibbertopterus scouleri (FF freshwater fish)</td><td><b>27</b></td><td>13.0%</td><td>3</td><td>17.6%</td></tr>
+<tr><td>Giant loon (WB waterbird)</td><td><b>17</b></td><td>8.2%</td><td>2.5</td><td>9.2%</td></tr>
+<tr><td>Fish carp (FF freshwater fish)</td><td><b>15</b></td><td>7.2%</td><td>7.5</td><td>24.5%</td></tr>
+<tr><td>Triassic gerrothorax (ML mid predator)</td><td><b>11</b></td><td>5.3%</td><td>1</td><td>2.4%</td></tr>
+<tr class="z"><td>Fish pike (APX apex)</td><td><b>5</b></td><td>2.4%</td><td>1</td><td>1.1%</td></tr>
+<tr><td>Capybara, giant ★ (SH shore)</td><td><b>1</b></td><td>0.5%</td><td>7.5</td><td>1.6%</td></tr>
+<tr><td>Otter man (SN sentient)</td><td><b>1</b></td><td>0.5%</td><td>7.5</td><td>1.6%</td></tr>
+<tr><td colspan="5" class="note">vermin: Fish bullhead yellow, Carboniferous meganeura, Carboniferous oestocephalus</td></tr>
+<tr><td rowspan="10"><b>Autumn</b><br><span class="note">seed: Giant damselfly</span></td><td>Bird loon (WB waterbird)</td><td><b>60</b></td><td>37.0%</td><td>2.5</td><td>39.2%</td></tr>
+<tr><td>Devonian hibbertopterus peachi (FF freshwater fish)</td><td><b>31</b></td><td>19.1%</td><td>3</td><td>24.3%</td></tr>
+<tr><td>Devonian hibbertopterus scouleri (FF freshwater fish)</td><td><b>27</b></td><td>16.7%</td><td>3</td><td>21.1%</td></tr>
+<tr><td>Snapping turtle (ML mid predator)</td><td><b>13</b></td><td>8.0%</td><td>1</td><td>3.4%</td></tr>
+<tr><td>Fish sturgeon (FF freshwater fish)</td><td><b>13</b></td><td>8.0%</td><td>1</td><td>3.4%</td></tr>
+<tr><td>Giant green tree frog (SH shore)</td><td><b>6</b></td><td>3.7%</td><td>1</td><td>1.6%</td></tr>
+<tr class="z"><td>Giant alligator (APX apex)</td><td><b>5</b></td><td>3.1%</td><td>2</td><td>2.6%</td></tr>
+<tr><td>Silurian jaekelopterus man (SN sentient)</td><td><b>4</b></td><td>2.5%</td><td>2</td><td>2.1%</td></tr>
+<tr><td>Giant damselfly ★ (WB waterbird)</td><td><b>3</b></td><td>1.9%</td><td>3</td><td>2.3%</td></tr>
+<tr><td colspan="5" class="note">vermin: Fish char, Mosquito</td></tr>
+<tr><td rowspan="11"><b>Winter</b><br><span class="note">seed: Alligator</span></td><td>Devonian hibbertopterus scouleri (FF freshwater fish)</td><td><b>27</b></td><td>22.7%</td><td>3</td><td>28.2%</td></tr>
+<tr><td>Bird osprey (RP raptor)</td><td><b>16</b></td><td>13.4%</td><td>1</td><td>5.6%</td></tr>
+<tr><td>Fish carp (FF freshwater fish)</td><td><b>15</b></td><td>12.6%</td><td>7.5</td><td>39.1%</td></tr>
+<tr><td>Snapping turtle (SH shore)</td><td><b>13</b></td><td>10.9%</td><td>1</td><td>4.5%</td></tr>
+<tr><td>Fish sturgeon (FF freshwater fish)</td><td><b>13</b></td><td>10.9%</td><td>1</td><td>4.5%</td></tr>
+<tr><td>Alligator snapping turtle (SH shore)</td><td><b>12</b></td><td>10.1%</td><td>1</td><td>4.2%</td></tr>
+<tr><td>Mosquito man (SN sentient)</td><td><b>11</b></td><td>9.2%</td><td>2</td><td>7.7%</td></tr>
+<tr><td>Fish lamprey sea (MW water mid predator)</td><td><b>6</b></td><td>5.0%</td><td>1</td><td>2.1%</td></tr>
+<tr class="z"><td>Giant alligator (APX apex)</td><td><b>5</b></td><td>4.2%</td><td>2</td><td>3.5%</td></tr>
+<tr><td>Alligator ★ (ML mid predator)</td><td><b>1</b></td><td>0.8%</td><td>2</td><td>0.7%</td></tr>
+<tr><td colspan="5" class="note">vermin: Fish perch, Carboniferous oestocephalus</td></tr>
+</table>
+<h4 style="margin:10px 0 4px">Cavern 1</h4>
+<table class="t1 left" style="font-size:12px"><tr><th>Season</th><th>Member (slot)</th><th>FREQUENCY</th><th>share of waves</th><th>mean group</th><th>share of animals</th></tr>
+<tr><td rowspan="7"><b>Spring</b><br><span class="note">seed: Draltha</span></td><td>Helmet snake (ML mid predator)</td><td><b>24</b></td><td>26.4%</td><td>1</td><td>8.1%</td></tr>
+<tr><td>Bugbat (LB land bird)</td><td><b>21</b></td><td>23.1%</td><td>10</td><td>70.6%</td></tr>
+<tr><td>Toad giant cave (MW water mid predator)</td><td><b>19</b></td><td>20.9%</td><td>1</td><td>6.4%</td></tr>
+<tr><td>Troll (SN sentient)</td><td><b>15</b></td><td>16.5%</td><td>1</td><td>5.0%</td></tr>
+<tr><td>Draltha ★ (PL land prey)</td><td><b>7</b></td><td>7.7%</td><td>3.5</td><td>8.2%</td></tr>
+<tr class="z"><td>Blind cave bear (APX apex)</td><td><b>5</b></td><td>5.5%</td><td>1</td><td>1.7%</td></tr>
+<tr><td colspan="5" class="note">vermin: Cap hopper, Bird swallow cave</td></tr>
+<tr><td rowspan="7"><b>Summer</b><br><span class="note">seed: Draltha</span></td><td>Gremlin (SN sentient)</td><td><b>58</b></td><td>47.2%</td><td>1</td><td>17.6%</td></tr>
+<tr><td>Helmet snake (ML mid predator)</td><td><b>24</b></td><td>19.5%</td><td>1</td><td>7.3%</td></tr>
+<tr><td>Bugbat (LB land bird)</td><td><b>21</b></td><td>17.1%</td><td>10</td><td>63.7%</td></tr>
+<tr><td>Crocodile cave (MW water mid predator)</td><td><b>8</b></td><td>6.5%</td><td>1</td><td>2.4%</td></tr>
+<tr><td>Draltha ★ (PL land prey)</td><td><b>7</b></td><td>5.7%</td><td>3.5</td><td>7.4%</td></tr>
+<tr class="z"><td>Blind cave bear (APX apex)</td><td><b>5</b></td><td>4.1%</td><td>1</td><td>1.5%</td></tr>
+<tr><td colspan="5" class="note">vermin: Olm, Bird swallow cave</td></tr>
+<tr><td rowspan="6"><b>Autumn</b><br><span class="note">seed: Toad giant cave</span></td><td>Mole dog naked (PL land prey)</td><td><b>33</b></td><td>47.1%</td><td>7.5</td><td>76.5%</td></tr>
+<tr><td>Toad giant cave ★ (ML mid predator)</td><td><b>19</b></td><td>27.1%</td><td>1</td><td>5.9%</td></tr>
+<tr><td>Crocodile cave (APX apex)</td><td><b>8</b></td><td>11.4%</td><td>1</td><td>2.5%</td></tr>
+<tr><td>Troglodyte (SN sentient)</td><td><b>6</b></td><td>8.6%</td><td>7.5</td><td>13.9%</td></tr>
+<tr><td>Bird swallow cave giant (RP raptor)</td><td><b>4</b></td><td>5.7%</td><td>1</td><td>1.2%</td></tr>
+<tr><td colspan="5" class="note">vermin: Olm, Bird swallow cave</td></tr>
+<tr><td rowspan="7"><b>Winter</b><br><span class="note">seed: Draltha</span></td><td>Helmet snake (ML mid predator)</td><td><b>24</b></td><td>29.3%</td><td>1</td><td>15.0%</td></tr>
+<tr><td>Plump helmet man (SN sentient)</td><td><b>20</b></td><td>24.4%</td><td>4</td><td>50.2%</td></tr>
+<tr><td>Toad giant cave (MW water mid predator)</td><td><b>19</b></td><td>23.2%</td><td>1</td><td>11.9%</td></tr>
+<tr><td>Crocodile cave (APX apex)</td><td><b>8</b></td><td>9.8%</td><td>1</td><td>5.0%</td></tr>
+<tr><td>Draltha ★ (PL land prey)</td><td><b>7</b></td><td>8.5%</td><td>3.5</td><td>15.4%</td></tr>
+<tr><td>Bird swallow cave giant (RP raptor)</td><td><b>4</b></td><td>4.9%</td><td>1</td><td>2.5%</td></tr>
+<tr><td colspan="5" class="note">vermin: Spider cave, Lobster cave</td></tr>
+</table>
+<h4 style="margin:10px 0 4px">Cavern 2</h4>
+<table class="t1 left" style="font-size:12px"><tr><th>Season</th><th>Member (slot)</th><th>FREQUENCY</th><th>share of waves</th><th>mean group</th><th>share of animals</th></tr>
+<tr><td rowspan="7"><b>Spring</b><br><span class="note">seed: Bat giant</span></td><td>Rat giant (PL land prey)</td><td><b>100</b></td><td>71.9%</td><td>1</td><td>61.2%</td></tr>
+<tr><td>Olm giant (MW water mid predator)</td><td><b>19</b></td><td>13.7%</td><td>1</td><td>11.6%</td></tr>
+<tr><td>Bat giant ★ (ML mid predator)</td><td><b>8</b></td><td>5.8%</td><td>1</td><td>4.9%</td></tr>
+<tr class="z"><td>Molemarian (APX apex)</td><td><b>5</b></td><td>3.6%</td><td>2</td><td>6.1%</td></tr>
+<tr><td>Bird swallow cave giant (RP raptor)</td><td><b>4</b></td><td>2.9%</td><td>1</td><td>2.4%</td></tr>
+<tr><td>Cave swallow man (SN sentient)</td><td><b>3</b></td><td>2.2%</td><td>7.5</td><td>13.8%</td></tr>
+<tr><td colspan="5" class="note">vermin: Cap hopper, Bird swallow cave</td></tr>
+<tr><td rowspan="7"><b>Summer</b><br><span class="note">seed: Rutherer</span></td><td>Olm giant (MW water mid predator)</td><td><b>19</b></td><td>35.8%</td><td>1</td><td>8.6%</td></tr>
+<tr><td>Amphibian man (SN sentient)</td><td><b>13</b></td><td>24.5%</td><td>7.5</td><td>43.9%</td></tr>
+<tr><td>Bat giant (RP raptor)</td><td><b>8</b></td><td>15.1%</td><td>1</td><td>3.6%</td></tr>
+<tr class="z"><td>Pond grabber (APX apex)</td><td><b>5</b></td><td>9.4%</td><td>4</td><td>9.0%</td></tr>
+<tr><td>Rutherer ★ (PL land prey)</td><td><b>5</b></td><td>9.4%</td><td>5</td><td>11.3%</td></tr>
+<tr><td>Crundle (ML mid predator)</td><td><b>3</b></td><td>5.7%</td><td>17.5</td><td>23.6%</td></tr>
+<tr><td colspan="5" class="note">vermin: Cap hopper, Fish cave</td></tr>
+<tr><td rowspan="7"><b>Autumn</b><br><span class="note">seed: Olm giant</span></td><td>Drunian (PL land prey)</td><td><b>38</b></td><td>46.9%</td><td>7.5</td><td>78.6%</td></tr>
+<tr><td>Olm giant ★ (ML mid predator)</td><td><b>19</b></td><td>23.5%</td><td>1</td><td>5.2%</td></tr>
+<tr><td>Bat giant (RP raptor)</td><td><b>8</b></td><td>9.9%</td><td>1</td><td>2.2%</td></tr>
+<tr><td>Crocodile cave (MW water mid predator)</td><td><b>8</b></td><td>9.9%</td><td>1</td><td>2.2%</td></tr>
+<tr class="z"><td>Pond grabber (APX apex)</td><td><b>5</b></td><td>6.2%</td><td>4</td><td>5.5%</td></tr>
+<tr><td>Olm man (SN sentient)</td><td><b>3</b></td><td>3.7%</td><td>7.5</td><td>6.2%</td></tr>
+<tr><td colspan="5" class="note">vermin: Olm, Fish cave</td></tr>
+<tr><td rowspan="7"><b>Winter</b><br><span class="note">seed: Rutherer</span></td><td>Bugbat (LB land bird)</td><td><b>21</b></td><td>35.0%</td><td>10</td><td>57.7%</td></tr>
+<tr><td>Olm giant (MW water mid predator)</td><td><b>19</b></td><td>31.7%</td><td>1</td><td>5.2%</td></tr>
+<tr><td>Reptile man (SN sentient)</td><td><b>7</b></td><td>11.7%</td><td>7.5</td><td>14.4%</td></tr>
+<tr class="z"><td>Spider cave giant (APX apex)</td><td><b>5</b></td><td>8.3%</td><td>1</td><td>1.4%</td></tr>
+<tr><td>Rutherer ★ (PL land prey)</td><td><b>5</b></td><td>8.3%</td><td>5</td><td>6.9%</td></tr>
+<tr><td>Crundle (ML mid predator)</td><td><b>3</b></td><td>5.0%</td><td>17.5</td><td>14.4%</td></tr>
+<tr><td colspan="5" class="note">vermin: Olm, Fish cave</td></tr>
+</table>
+<h4 style="margin:10px 0 4px">Cavern 3</h4>
+<table class="t1 left" style="font-size:12px"><tr><th>Season</th><th>Member (slot)</th><th>FREQUENCY</th><th>share of waves</th><th>mean group</th><th>share of animals</th></tr>
+<tr><td rowspan="7"><b>Spring</b><br><span class="note">seed: Voracious cave crawler</span></td><td>Manera (SN sentient)</td><td><b>87</b></td><td>45.5%</td><td>1</td><td>18.9%</td></tr>
+<tr><td>Cave floater (LB land bird)</td><td><b>37</b></td><td>19.4%</td><td>2</td><td>16.1%</td></tr>
+<tr><td>Flesh ball (FF freshwater fish)</td><td><b>36</b></td><td>18.8%</td><td>3.5</td><td>27.3%</td></tr>
+<tr><td>Elk bird (PL land prey)</td><td><b>22</b></td><td>11.5%</td><td>7.5</td><td>35.8%</td></tr>
+<tr class="z"><td>Jabberer (APX apex)</td><td><b>5</b></td><td>2.6%</td><td>1</td><td>1.1%</td></tr>
+<tr><td>Voracious cave crawler ★ (ML mid predator)</td><td><b>4</b></td><td>2.1%</td><td>1</td><td>0.9%</td></tr>
+<tr><td colspan="5" class="note">vermin: Spider cave, Bird swallow cave</td></tr>
+<tr><td rowspan="7"><b>Summer</b><br><span class="note">seed: Rutherer</span></td><td>Flesh ball (FF freshwater fish)</td><td><b>36</b></td><td>60.0%</td><td>3.5</td><td>54.0%</td></tr>
+<tr><td>Hungry head (RP raptor)</td><td><b>8</b></td><td>13.3%</td><td>7.5</td><td>25.7%</td></tr>
+<tr class="z"><td>Cave dragon (APX apex)</td><td><b>5</b></td><td>8.3%</td><td>1</td><td>2.1%</td></tr>
+<tr><td>Rutherer ★ (PL land prey)</td><td><b>5</b></td><td>8.3%</td><td>5</td><td>10.7%</td></tr>
+<tr class="z"><td>Molemarian (ML mid predator)</td><td><b>5</b></td><td>8.3%</td><td>2</td><td>4.3%</td></tr>
+<tr><td>Ant man (SN sentient)</td><td><b>1</b></td><td>1.7%</td><td>7.5</td><td>3.2%</td></tr>
+<tr><td colspan="5" class="note">vermin: Spider cave, Bird swallow cave</td></tr>
+<tr><td rowspan="7"><b>Autumn</b><br><span class="note">seed: Jabberer</span></td><td>Flesh ball (FF freshwater fish)</td><td><b>36</b></td><td>41.4%</td><td>3.5</td><td>20.1%</td></tr>
+<tr><td>Creeping eye (PL land prey)</td><td><b>28</b></td><td>32.2%</td><td>15</td><td>67.1%</td></tr>
+<tr><td>Hungry head (RP raptor)</td><td><b>8</b></td><td>9.2%</td><td>7.5</td><td>9.6%</td></tr>
+<tr class="z"><td>Cave dragon (APX apex)</td><td><b>5</b></td><td>5.7%</td><td>1</td><td>0.8%</td></tr>
+<tr class="z"><td>Jabberer ★ (ML mid predator)</td><td><b>5</b></td><td>5.7%</td><td>1</td><td>0.8%</td></tr>
+<tr><td>Blind cave ogre (SN sentient)</td><td><b>5</b></td><td>5.7%</td><td>2</td><td>1.6%</td></tr>
+<tr><td colspan="5" class="note">vermin: Bird swallow cave, Creepy crawler</td></tr>
+<tr><td rowspan="7"><b>Winter</b><br><span class="note">seed: Spider cave giant</span></td><td>Cave floater (LB land bird)</td><td><b>37</b></td><td>37.0%</td><td>2</td><td>12.9%</td></tr>
+<tr><td>Creeping eye (PL land prey)</td><td><b>28</b></td><td>28.0%</td><td>15</td><td>73.1%</td></tr>
+<tr><td>Toad giant cave (MW water mid predator)</td><td><b>19</b></td><td>19.0%</td><td>1</td><td>3.3%</td></tr>
+<tr><td>Serpent man (SN sentient)</td><td><b>7</b></td><td>7.0%</td><td>7.5</td><td>9.1%</td></tr>
+<tr class="z"><td>Spider cave giant ★ (ML mid predator)</td><td><b>5</b></td><td>5.0%</td><td>1</td><td>0.9%</td></tr>
+<tr><td>Voracious cave crawler (APX apex)</td><td><b>4</b></td><td>4.0%</td><td>1</td><td>0.7%</td></tr>
+<tr><td colspan="5" class="note">vermin: Spider cave, Creepy crawler</td></tr>
+</table>
+      <!-- EX:END -->
+
+      <h3 style="margin:18px 0 6px;font-size:15px">Why a species ends up far too common or far too rare</h3>
+      <div class="grid g3">
+        <div class="step"><span class="t">1 · Solitary and small rises to the top</span><br>Savage marsh: arthropleura 100 (solitary, the smallest land prey, size factor capped ×4), weasel and adder 23. Ocean coast: red panda 100 (the smallest grazer, solitary), and on the flying ladder the barn owl 100, a predator above every prey bird (raven 38, kea 34). Every wave is one animal but takes a whole slot. On the Roofpuzzle fort, hares and barn owls took about 68% of land waves.</div>
+        <div class="step"><span class="t">2 · Big groups sink</span><br>Savage marsh: wild boar 12 (mean group 7.5) against the solitary giant hamster 44 in the same slot; wolf 1 (group 5). Dividing by group size makes herds and packs rare as <i>waves</i>, though each wave brings many animals.</div>
+        <div class="step"><span class="t">3 · The floor of 1</span><br>Anything under 0.5% of the top rounds up to 1. Every very rare species looks the same, and 1 against 100 is 1% of waves. In earlier tests only 26% of cast species at FREQUENCY 1–2 ever arrived, against 75% at 21 or more.</div>
+        <div class="step"><span class="t">4 · The whole year sets the scale</span><br>A species' number depends on every member of its partition across all four seasons, not on its own season's cast. A season of only big herds and predators is all low numbers. Their ratios still hold, but the floor and rounding blur them.</div>
+        <div class="step"><span class="t">5 · Apexes are off the ladder</span><br>Raw FREQUENCY capped at 5, so DF almost never sends one. They come from the apex scheduler instead, to a presence target.</div>
+        <div class="step"><span class="t">6 · One raw, several layers</span><br>A species living on two layers (a cavern and the surface) has one FREQUENCY, and the higher value wins.</div>
+        <div class="step"><span class="t">7 · Caverns may not listen</span><br>B1 suggests DF's cavern pick follows stock more than FREQUENCY <span class="chip c-pend">PENDING</span>. That's why flesh balls at FREQUENCY 10 with 395 stock took 54% of cavern 3.</div>
+        <div class="step"><span class="t">8 · Water and the tool's draws re-weight it</span><br>For water the ladder is only the starting weight (balance, pyramid, pull, feed follow). For the tool's land and flying draws, "least seen this season first" comes before it.</div>
+        <div class="step"><span class="t">9 · Odds only matter when there is room</span><br>The ladder decides <i>who</i> fills an open slot. When places sit at their cap (68–89% of the time in B1), departures decide <i>how often</i> anyone comes.</div>
+        <div class="step"><span class="t">10 · A missing family weight is 5</span><br>A slot with no family entry on its ladder gets 5 (step 3). On water, raptors have no entry, so the osprey gets 5 against 2 for the water mid predators and 6 for shore prey. Savage marsh: osprey 30, above carp (15) and sturgeon (13).</div>
+        <div class="step"><span class="t">11 · The season's seed often comes last</span><br>The seed (★ in the season tables) is the species a season's cast is built around, yet the ladder does not favour it. In 30 of the 72 season casts on the three real forts above, the seed has the lowest (or tied lowest) FREQUENCY of its season's non-apex members: lake fort giant fly 1, giant capybara 1 and alligator 1; draltha 7 in cavern 1 on all three forts.</div>
+      </div>
+      <p class="note" style="margin-top:10px">Settings behind it (cast config): the pyramid targets, units on (step 6), biomass guard 0.5, apex raw cap 5, animal-person and giant FREQUENCY multipliers (1 = off).</p>
+    </div>
+  </section>
+  <!-- 3 -->
+  <section class="panel sw" id="p3">
+    <h2><span class="num">3</span>Season change <span class="when">a timer at the change's own tick; the groups pass and the daily job are fallbacks</span></h2>
+    <div class="body flow">
+      <div class="step"><span class="badge">1</span><span class="t">Borrowed seasons returned</span>: stand-ins from exhaustion and water "spill" go back to resting.</div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">2</span><span class="t">Apply the season</span>
+        <ul><li>This season's cast members become active. Every other species the tool manages rests.</li>
+            <li>Resting: every entry <b>held</b> (stock to the reserve, extinct flag set). Nothing is deleted.</li>
+            <li>Active: entries stocked. <b>One open entry per species</b>: on the surface, the anchor tile's (the fort's own region tile); in the caverns, the anchor cave at each depth. Every other copy is held.</li>
+            <li>A dry chosen entry is refilled from its held copies.</li>
+            <li>Caverns: each member's entry opens with <b>at most 30 animals</b>; the rest waits in its own reserve <span class="chip c-new">NEW</span> <span class="chip c-pend">PENDING</span> (aimed at the stock-weighted pick).</li></ul></div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">3</span><span class="t">FREQUENCY written</span> (this runs daily too): every open species gets its ladder value (panel 2b). A cavern species not cast now is held at FREQUENCY <b>0</b>, but vermin are held at 1 because 0 once froze DF on a vermin species. A keep-alive guard makes sure no cave is left with only frequency-0 species stocked, which also freezes DF.</div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">4</span><span class="t">Arrival pattern</span> re-applied. The default is "steady" <span class="chip c-on">ON</span>; burst, trickle, dawn and follow are <span class="chip c-off">OFF</span>. Announcement and ledger line: "Summer wildlife roster applied".</div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">5</span><span class="t">Cast turnover</span>: groups of species this season doesn't want are sent off: their leave countdowns are zeroed and they walk out on DF's own path. Irruption waves are left alone. This also runs on every groups pass.</div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="panel sw" id="p4">
+    <h2><span class="num">4</span>Every day</h2>
+    <div class="body grid g4">
+      <div class="step"><span class="t">Hold</span>: re-hold anything refunded into a resting entry (also every 300 ticks). Re-write every species' <b>FREQUENCY</b> (panel 2b; resting cavern species 0). Arm the season timer.</div>
+      <div class="step"><span class="t">Water-body registry</span> rescanned: ocean, lake, river, pond, cavern pool.</div>
+      <div class="step"><span class="t">Casts for water found later</span>: a body discovered after the build gets its layer's cast.</div>
+      <div class="step"><span class="t">Apex scheduler</span>: places apex predators straight onto the map on a schedule (once a day at most, within its cap, hazard and target), then the invasive list.</div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="panel sw" id="p5">
+    <h2><span class="num">5</span>The groups pass <span class="when">every 300 ticks (a quarter of a day), in this order</span></h2>
+    <div class="body flow">
+      <div class="step"><span class="badge">a</span><span class="t">Hold and top up</span>: re-hold resting entries a departure refunded, refill dry chosen entries from held copies, and level cavern entries to the open stock (30) <span class="chip c-new">NEW</span>.</div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">b</span><span class="t">Season change</span>, if the timer missed it.</div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">c</span><span class="t">Exhaustion and spill</span>
+        <ul><li><b>Exhaustion</b>: a cast member whose stock is 0 with none on the map for a day hands this season to a stand-in from the same cast slot, linked into the cast's food web and nearest in size, with stock. It returns at the season change.</li>
+            <li><b>Spill</b>: a water body with too few candidates (fewer than 3) borrows species from the nearest season.</li></ul></div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">d</span><span class="t">Reconcile</span>: drop dead and departed members; count the departures.</div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">e</span><span class="t">Group sizes</span> written into the raws:
+        <ul><li>Animal people and cavern civ races in the caverns are capped at groups of 5 (lifted during an irruption).</li>
+            <li>The player's per-species sizes.</li>
+            <li><code>groups pack N</code> <span class="chip c-off">OFF</span> (0).</li></ul></div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">f</span><span class="t">Discover DF's waves</span>: every unit still carrying DF's wave flag and not yet tracked.
+        <div class="branch"><div class="q">Same species and same entry as a group still at the gate, or one that arrived under a day ago?</div>
+          <div class="opts"><div><b>yes</b>: joins that group (released with it if already released), so one wave is one group <span class="chip c-new">NEW</span></div><div><b>no</b>: a new group, arrival logged</div></div></div></div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">g</span><span class="t">File and housekeeping</span>
+        <ul><li>A water-cast species is counted in its water body; a flying-cast one, as flying.</li>
+            <li>The season tally is noted (who was here, for the food web's past seasons).</li>
+            <li><b>Adopt</b> animals already here: cavern natives <span class="chip c-on">ON</span>, seeded water schools <span class="chip c-on">ON</span>, land natives <span class="chip c-off">OFF</span>. Young join their mothers' groups.</li>
+            <li>Cast turnover (panel 3, step 5).</li>
+            <li><b>Leave check</b>: a sent-off animal that can't walk out is taken off the map after 7 days.</li></ul></div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">h</span><span class="t">Cohesion</span> <span class="chip c-on">ON</span>: a leader for each herd, pack, flock, school or pod; the others follow within 8 / 4 / 12 / 5 / 5 tiles. When the leader dies, it isn't replaced. Panic (scatter from where it fell) <span class="chip c-off">OFF</span>.</div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">i</span><span class="t">Stuck sweep</span>: animals stuck for 5,000 ticks (in walls, in the air) are put back on the ground.</div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">j</span><span class="t">Coupling</span> <span class="chip c-on">ON</span>: a prey group arriving on land calls its predators. Every other surface source is closed until one arrives, 2 days at most. Never while the land pause holds.</div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">k</span><span class="t">Water</span>: one body per pass, run 3 ticks later as its own step. DF sends no water waves; every water arrival is this draw.
+        <div class="branch"><div class="q">This body due, and under its cap (⌊√ embark tiles⌋ + 1, so 4 on a 3×3)?</div>
+          <div class="opts">
+            <div><b>candidates</b>: this season's ocean cast (salt water) or fresh cast (fresh water) members that <b>fit</b> the body: size (a pond takes adults ≤ 20,000 cm³; a brook has its own limit), salt or fresh, raws that reach that water, a tile to enter</div>
+            <div><b>weight</b> = ladder odds × balance (groups wanted v here, up to ×4) × pyramid (target share per food-web level) × pull (a predator with prey here, ≥ 1.5, ≤ 4) × feed (prey with eaters here) × apex limit (at most 1 apex group per body), clamped to 1/20–20</div>
+            <div><b>repeats</b>: a species already in the body weighs 0, unless <i>every</i> candidate is there; then repeats are allowed</div>
+            <div><b>then</b>: pick → group size (raws or player, ≤ stock) → entry tile → place → stock −n → the body's clock sets the next due tick. Nothing to draw → retry in a day</div>
+            <div><b>bird pause</b>: at the body's cap, its water-cast birds' surface entries are closed, reopening at cap − 2</div></div></div></div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">l</span><span class="t">Sponges</span> <span class="chip c-on">ON</span>: ocean-floor scenery, planted monthly, outside every count.</div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">m</span><span class="t">Land (ground)</span>
+        <ul><li><b>Pauses</b>, in this order:
+            <ul><li>Bird pause.</li>
+                <li><b>Land pause</b> <span class="chip c-on">ON</span>: at the cap, every surface entry is closed, reopening at cap − 2.</li>
+                <li>Flying pause.</li>
+                <li><b>One group per species</b> <span class="chip c-on">ON</span>: a species with a group on the map has its surface entries closed. It stands down if no other species has an open entry.</li></ul></li>
+            <li>No trimming while the pause is on. The land animal ceiling is none (0).</li>
+            <li><b>Release clock</b>: gap = W (how long groups stay, learned from departures) ÷ target × catch-up × jitter (±35%). It is clamped to 0.5–20 days.</li></ul>
+        <div class="branch"><div class="q">Under the cap and the clock due?</div>
+          <div class="opts">
+            <div><b>a DF wave is waiting</b>: release the oldest (clear its flag, which opens DF's gate for the next wave). Drain the gate if a one-animal group still holds it <span class="chip c-on">ON</span>.</div>
+            <div><b>none waiting</b>: the tool draws a ground cast member at the map edge (in season, not on the map, least seen this season first, by ladder odds), from its entry's stock <span class="chip c-new">NEW</span></div>
+            <div><b>nothing drawable</b>: try again in a day</div></div></div></div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">n</span><span class="t">Flying</span>: the same with its own cap (same formula), pause, clock and release-or-draw <span class="chip c-new">NEW</span>.</div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">o</span><span class="t">Caverns, each depth on its own</span>: the count is every live wild group there (DF's waves, released or waiting, plus placed, drawn and adopted groups, natives included).
+        <div class="branch"><div class="q">Groups at that depth (cap 7)</div>
+          <div class="opts">
+            <div><b>at the cap</b>:
+              <ul><li>Pause <span class="chip c-on">ON</span>: every entry at that depth is closed.</li>
+                  <li>Hold: its species go to FREQUENCY 0 (vermin 1) while any cavern they live in is full. Species shared with the surface are left alone.</li>
+                  <li>A waiting DF wave stays flagged, which keeps its source shut.</li>
+                  <li>The trim (oldest group sent off) does not run while the pause is on.</li></ul></div>
+            <div><b>under the cap and due</b>: release the oldest DF wave waiting there</div>
+            <div><b>none waiting, and DF sent nothing for 4 days</b>: the tool draws a cast member into that cavern <span class="chip c-new">NEW</span></div></div></div></div>
+      <div class="arrow"></div>
+      <div class="step offstep"><span class="badge" style="background:#8a96a3">p</span><span class="t">Irruptions</span> <span class="chip c-off">OFF</span>: an ecological surge of one species, with a warning, the waves the tool places, an end and a cooldown. Every write is undone afterwards.</div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">q</span><span class="t">Save</span> the groups record.</div>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="panel sw" id="p6">
+    <h2><span class="num">6</span>Ecology: the food web acting on the map <span class="when">every 3,000 ticks (2.5 days)</span></h2>
+    <div class="body flow">
+      <div class="step"><span class="badge">1</span><span class="t">Clear</span> records of animals that have left.</div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">2</span><span class="t">Who is who on the map</span>
+        <ul><li><b>Predators</b>: armed species of the candidate list, on the surface or in a cavern (never in water, the magma sea or the underworld).</li>
+            <li><b>Targets</b>: wild animals in those realms (never sponges); caravan and visitor animals.</li>
+            <li>The fort's livestock <span class="chip c-on">ON</span>: prey of land apexes, ground mid predators and cavern predators only, and only when no wild prey is around.</li>
+            <li>Armed civilised races, as prey of cavern apexes <span class="chip c-on">ON</span>.</li>
+            <li>A cast predator can be prey of the cast's higher tiers.</li></ul></div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">3</span><span class="t">Write</span>: for each predator → target pair that New Rules allows, a PREDATOR_OR_PREY cell in DF's relation table. This is what makes one animal hunt another; only a non-benign attacker acts on it.</div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">4</span><span class="t">Sweep</span> <span class="chip c-on">ON</span>: any such cell between wild animals that New Rules does <b>not</b> allow (DF writes some itself) is reset to none. A cell aimed at a sponge is always cleared.</div>
+      <div class="arrow"></div>
+      <div class="step"><span class="badge">5</span><span class="t">Hunters</span>:
+        <ul><li>Hunting skill levels: solo apex 15, solo mid predator 12, pack 10.</li>
+            <li>Pack hunting within 10 tiles <span class="chip c-on">ON</span>.</li>
+            <li>Raptors <span class="chip c-on">ON</span>; raptor stoops (a dive onto prey) <span class="chip c-off">OFF</span>, parked.</li>
+            <li>Bear fishing walks (summer and autumn) <span class="chip c-off">OFF</span>, parked.</li></ul></div>
+      <div class="arrow"></div>
+      <div class="step offstep"><span class="badge" style="background:#8a96a3">6</span><span class="t">Nudge</span> <span class="chip c-off">OFF</span>: a predator more than 40 tiles from every target for 3,000 ticks is moved within 6 tiles of one, in its own realm only.</div>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="panel sw" id="p7">
+    <h2><span class="num">7</span>Fast jobs</h2>
+    <div class="body grid g5">
+      <div class="step"><span class="t">Alerts</span> · 10 ticks <span class="chip c-on">ON</span><br>A fight between wild animals with no person in it doesn't light the fort's alert button. The reports stay in each animal's log.</div>
+      <div class="step"><span class="t">Curious thieves stay</span> · 50 ticks <span class="chip c-on">ON</span><br>A curious beast that steals loses the habit and stays, instead of walking off the map with the loot. A species the player marks "resident" keeps it the same way.</div>
+      <div class="step offstep"><span class="t">Scavenging</span> · 200 ticks <span class="chip c-off">OFF</span><br>Bone scavengers (and swimmer scavengers, sharks included) find remains they can reach and eat them.</div>
+      <div class="step offstep"><span class="t">Vermin forage</span> · 100 ticks <span class="chip c-off">OFF</span><br>Foragers walk to food; whether it was eaten, gone or missed is traced.</div>
+      <div class="step"><span class="t">Water renderer</span> · every frame<br>See-through water with creatures under it. It changes nothing in the game, only how it looks.</div>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="panel df" id="p8">
+    <h2><span class="num">8</span>What Dwarf Fortress does on its own <span class="when">always, whether the tool is on or not</span></h2>
+    <div class="body grid g3">
+      <div class="step df"><span class="t">Gate</span><br>One wave per source at a time. While any unit still carries the wave flag, no new wave comes from that source. Each region tile and each cave is a separate source.</div>
+      <div class="step df"><span class="t">Pick</span><br>Among <b>open</b> entries on the site tile and its 8 neighbours (the site tile weighs most).<br>Surface: FREQUENCY × tile weight, per entry.<br>Caverns: appears to follow <b>stock</b> <span class="chip c-pend">PENDING</span></div>
+      <div class="step df"><span class="t">Group size</span><br>Random within the raw's CLUSTER_NUMBER, at most the entry's stock. A wave can walk in over several hundred ticks.</div>
+      <div class="step df"><span class="t">Stock</span><br>−1 per animal that arrives; +1 refunded to the entry the unit came from when it leaves. Breeding on the map doesn't refill the entry.</div>
+      <div class="step df"><span class="t">Natives</span><br>Animals already in the caverns at embark, and young born on the map, carry no wave flag. The tool adopts them into groups.</div>
+      <div class="step df"><span class="t">Life on the map</span><br>The animals wander, fight on relation cells, eat, breed, die, and leave when their own countdown runs out.</div>
+    </div>
+  </section>
+
+  <!-- 9 -->
+  <section class="panel sw" id="p9">
+    <h2><span class="num">9</span>Switch off <span class="when"><code>off</code>, disable, All off</span></h2>
+    <div class="body grid g4">
+      <div class="step"><span class="t">Entries</span><br>Every held entry gets its reserve back and its extinct flag cleared. The entries the casts created are removed.</div>
+      <div class="step"><span class="t">Raws</span><br>Every raw write is undone: seasons, FREQUENCY, group sizes, the pack and solitary packages, fishers, gobble, hunting flags, curious flags.</div>
+      <div class="step"><span class="t">On the map</span><br>PREDATOR_OR_PREY cells between wild animals are cleared, follow links released, irruption and trim writes put back.</div>
+      <div class="step"><span class="t">Jobs</span><br>Every job stops; the water renderer turns off. <code>off</code> also clears the global autostart in <code>dfhack-config/seasonal-wildlife.json</code>.</div>
+    </div>
+  </section>
+
+  <!-- path -->
+  <section class="panel mix" id="path">
+    <h2><span class="num">★</span>How one species ends up on the map</h2>
+    <div class="body">
+      <div class="path">
+        <div class="gate"><div class="q">1 · In this season's cast?</div>Panel 2 builds it; panel 3 applies it. A stand-in counts while it covers an exhausted member.<div class="no">no → its entries are held; it can't come</div></div>
+        <div class="chev">›</div>
+        <div class="gate"><div class="q">2 · Its open entry has stock?</div>Panels 3 and 5a, 5c.<div class="no">no → exhausted after a day; a stand-in takes the slot</div></div>
+        <div class="chev">›</div>
+        <div class="gate"><div class="q">3 · Its place under the cap and due?</div>Panel 5 k (water), m (ground), n (flying), o (caverns).<div class="no">no → paused (entries closed until cap − 2) or waiting on the clock</div></div>
+        <div class="chev">›</div>
+        <div class="gate"><div class="q">4 · Not already on the map?</div>One group per species (surface and water; caverns don't use this rule).<div class="no">here already → closed, or weighed 0 unless every candidate is here</div></div>
+      </div>
+      <div class="ways">
+        <div class="gate df"><div class="q">Way 1 · DF picks it</div>DF's pick (panel 8) sends a wave; it waits flagged at the gate until the tool releases it on the clock (panel 5 m–o).</div>
+        <div class="gate"><div class="q">Way 2 · the tool draws it</div>Water always (panel 5 k). Ground, flying and caverns when the place is due and no DF wave is waiting (panel 5 m–o).</div>
+        <div class="gate"><div class="q">Way 3 · the tool places it</div>The apex scheduler (panel 4), irruption waves (off by default), and seeded water schools at load.</div>
+      </div>
+      <p class="note" style="margin-top:10px">Once it is on the map, panels 5 g–j, 6 and 7 decide how it behaves. DF decides when it leaves (panel 8), and the season change can send it off (panel 3). Its departure refunds its entry; if the species is resting by then, the next hold (panel 5a) moves that stock back into the reserve.</p>
+    </div>
+  </section>
+
+  <!-- defaults -->
+  <section class="panel mix" id="defaults">
+    <h2><span class="num">⚙</span>Switches and their defaults</h2>
+    <div class="body">
+      <table class="t1 left">
+        <tr><th>Mechanic</th><th>Default</th><th>Command (<code>seasonal-wildlife …</code>) or Panel switch</th><th>Panel</th></tr>
+        <tr><td>Land pause at the cap, reopen at cap − 2</td><td><span class="chip c-on">ON</span></td><td><code>groups pause on|off</code></td><td>5 m</td></tr>
+        <tr><td>One group per species</td><td><span class="chip c-on">ON</span></td><td><code>groups onespecies on|off</code></td><td>5 m</td></tr>
+        <tr><td>One open entry per species: surface / caverns</td><td><span class="chip c-on">ON</span></td><td><code>groups single on|off · groups single cavern on|off</code></td><td>3</td></tr>
+        <tr><td>Tool draws when DF has no wave waiting</td><td><span class="chip c-on">ON</span> <span class="chip c-new">NEW</span></td><td><code>groups draw on|off</code></td><td>5 m–o</td></tr>
+        <tr><td>Cavern draw after DF is quiet for N days</td><td>4 days <span class="chip c-new">NEW</span></td><td><code>groups cavern draw_grace N</code></td><td>5 o</td></tr>
+        <tr><td>Cavern open stock</td><td>30 <span class="chip c-new">NEW</span></td><td><code>groups cavern open_stock N (0 = off)</code></td><td>3, 5a</td></tr>
+        <tr><td>Cavern gate (count, clock, release)</td><td><span class="chip c-on">ON</span></td><td><code>groups cavern on|off</code></td><td>5 o</td></tr>
+        <tr><td>Cavern cap</td><td>7</td><td><code>groups cavern cap N</code></td><td>5 o</td></tr>
+        <tr><td>Cavern pause at the cap</td><td><span class="chip c-on">ON</span></td><td><code>groups cavern pause on|off</code></td><td>5 o</td></tr>
+        <tr><td>Cavern frequency hold</td><td>any</td><td><code>groups cavern hold any|all|off</code></td><td>5 o</td></tr>
+        <tr><td>Adaptive release clock</td><td><span class="chip c-on">ON</span></td><td><code>groups clock on|off</code></td><td>5 m–o</td></tr>
+        <tr><td>Water draws</td><td><span class="chip c-on">ON</span></td><td><code>water on|off</code></td><td>5 k</td></tr>
+        <tr><td>Water season spill</td><td><span class="chip c-on">ON</span></td><td><code>water spill on|off</code></td><td>5 c</td></tr>
+        <tr><td>Exhaustion and stand-ins</td><td><span class="chip c-on">ON</span></td><td><code>exhaust on|off</code></td><td>5 c</td></tr>
+        <tr><td>Coupling (a prey arrival calls its predators)</td><td><span class="chip c-on">ON</span></td><td><code>groups coupling on|off</code></td><td>5 j</td></tr>
+        <tr><td>Cohesion (leaders and followers)</td><td><span class="chip c-on">ON</span></td><td><code>groups cohesion on|off</code></td><td>5 h</td></tr>
+        <tr><td>Panic when a leader dies</td><td><span class="chip c-off">OFF</span> <span class="note">parked</span></td><td><code>groups panic on|off</code></td><td>5 h</td></tr>
+        <tr><td>Arrival pattern</td><td>steady</td><td><code>pattern land|cavern|water steady|burst|trickle|dawn|follow</code></td><td>3</td></tr>
+        <tr><td>Ecology (relation writes)</td><td><span class="chip c-on">ON</span></td><td>Panel: Ecology</td><td>6</td></tr>
+        <tr><td>Livestock as prey, only as fallback prey</td><td><span class="chip c-on">ON</span> <span class="note">opt-in</span></td><td><code>groups livestock on|off</code></td><td>6</td></tr>
+        <tr><td>Relation sweep</td><td><span class="chip c-on">ON</span></td><td><code>v7 sweep on|off</code></td><td>6</td></tr>
+        <tr><td>Nudge (move a far predator nearer prey)</td><td><span class="chip c-off">OFF</span> <span class="note">opt-in</span></td><td>Panel: Nudge</td><td>6</td></tr>
+        <tr><td>Raptor stoops</td><td><span class="chip c-off">OFF</span> <span class="note">parked</span></td><td><code>hunters stoop on|off</code></td><td>6</td></tr>
+        <tr><td>Bear fishing</td><td><span class="chip c-off">OFF</span> <span class="note">parked</span></td><td>—</td><td>6</td></tr>
+        <tr><td>Vermin hunting flags</td><td><span class="chip c-off">OFF</span> <span class="note">opt-in</span></td><td><code>hunting on|off</code></td><td>1</td></tr>
+        <tr><td>Scavenging</td><td><span class="chip c-off">OFF</span> <span class="note">opt-in</span></td><td><code>scavenge on|off</code></td><td>7</td></tr>
+        <tr><td>Vermin foraging walks</td><td><span class="chip c-off">OFF</span> <span class="note">parked</span></td><td><code>vermin forage on|off</code></td><td>7</td></tr>
+        <tr><td>Curious thieves stay</td><td><span class="chip c-on">ON</span></td><td>Panel: Curious thieves stay</td><td>7</td></tr>
+        <tr><td>Quiet wildlife fights</td><td><span class="chip c-on">ON</span></td><td>Panel: Quiet wildlife fights</td><td>7</td></tr>
+        <tr><td>Irruptions</td><td><span class="chip c-off">OFF</span> <span class="note">opt-in</span></td><td><code>irruption on|off</code></td><td>5 p</td></tr>
+        <tr><td>Sponges</td><td><span class="chip c-on">ON</span></td><td><code>v7 sponges on|off</code></td><td>5 l</td></tr>
+        <tr><td>Deep layer (magma sea species)</td><td><span class="chip c-off">OFF</span></td><td>Panel: Layer: deep</td><td>2</td></tr>
+      </table>
+      <p class="note"><b>Parked</b>: off, and <code>enable</code> / All on leaves it off (the user's 7 Oct ruling on nudges). <b>Opt-in</b>: <code>enable</code> / All on leaves it as the player set it. Every other switch is turned on by <code>enable</code> / All on. These are the tool's built-in defaults; a fort's saved settings can differ (<code>seasonal-wildlife status</code>).</p>
+    </div>
+  </section>
+</main>
+<footer>Seasonal Wildlife 8.1 pacing work · DwarfCron data/pacing/mechanics-diagram.html · revised 17 Nov 2026</footer>
+</body>
+</html>

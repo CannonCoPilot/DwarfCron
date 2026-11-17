@@ -45,6 +45,11 @@ for _, u in ipairs(df.global.world.units.active) do
         end
     end
 end
+-- B2 (17 Nov 2026): the casts once per season (castsView live is the probe's heaviest read; B1's evil fort froze 3 times
+-- under the probe and not without it). Kept in _G across calls, keyed by year and season.
+local ck = df.global.cur_year * 4 + df.global.cur_season
+local C = rawget(_G, '__pacing_probe_casts')
+if C and C.k == ck then out.casts = C.casts; print(json.encode(out)); return end
 out.casts = {}
 local okV, v = pcall(sw.ROSTER.castsView, cfg, { live = true })
 if okV and v then
@@ -56,4 +61,5 @@ if okV and v then
         end
     end
 end
+rawset(_G, '__pacing_probe_casts', { k = ck, casts = out.casts })
 print(json.encode(out))
