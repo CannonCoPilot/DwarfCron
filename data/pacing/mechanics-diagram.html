@@ -294,7 +294,7 @@
       <div class="arrow"></div>
       <div class="step"><span class="badge">5</span><span class="t">Write into the raws</span>:
         <ul><li>Seasons for the roster.</li>
-            <li>Vermin hunting flags for predatory birds and small land predators <span class="chip c-off">OFF</span>.</li>
+            <li>Vermin hunting flags for predatory birds (and fliers read as waterbirds; the small land predators were dropped in v7.6.2) <span class="chip c-on">ON</span> in practice: its default is opt-in, but <code>enable</code> and a new fort's first load turn it on (rig status: "vermin hunting: on").</li>
             <li>The "curious" (thief) flags, cleared for thieves that stay.</li>
             <li>Gobble and vermin-eating links.</li>
             <li>The pack and solitary packages.</li></ul></div>
@@ -309,7 +309,7 @@
           <div class="layer"><b>season timer</b>at the change's tick · panel 3</div>
           <div class="layer"><b>alerts</b>10 ticks · panel 7</div>
           <div class="layer"><b>curious</b>50 ticks · panel 7</div>
-          <div class="layer"><b>scavenging</b>200 ticks <span class="chip c-off">OFF</span></div>
+          <div class="layer"><b>scavenging</b>200 ticks <span class="chip c-on">ON</span> <span class="note">(opt-in default; enable turns it on)</span></div>
           <div class="layer"><b>vermin forage</b>100 ticks <span class="chip c-off">OFF</span></div>
           <div class="layer"><b>water renderer</b>every frame (looks only)</div>
         </div></div>
@@ -395,7 +395,7 @@
         <tr><th>Where the ladder acts</th><th>How</th></tr>
         <tr><td>Ground, flying</td><td>DF's own waves: each species has one open entry (single source), so its odds are its FREQUENCY ÷ the sum over the season's open members. The tool's own draw (when DF has nothing waiting) takes the least-seen member first, then uses the ladder as its weights.</td></tr>
         <tr><td>Water (ocean, lake, river, ponds)</td><td>DF sends no water waves. The tool's draw starts from the ladder value, then multiplies it by balance, pyramid, pull and feed (panel 5 k).</td></tr>
-        <tr><td>Caverns 1–3</td><td>DF's own waves, as on the surface. B1 suggests stock matters more than FREQUENCY there <span class="chip c-pend">PENDING</span>, which the cavern open stock (30) is meant to offset.</td></tr>
+        <tr><td>Caverns 1–3</td><td>DF's own waves, as on the surface. <b>The tool's own cavern draw (P9) never places anything in this build</b>: it looks up cast members without their <code>cavern:</code> key prefix and so never finds a cavern entry (0 cavern draws on all B2 forts; bug found 17 Nov, not yet fixed). Cavern arrivals are all DF's. B1 suggests stock matters more than FREQUENCY there <span class="chip c-pend">PENDING</span>, which the cavern open stock (30) is meant to offset.</td></tr>
         <tr><td>Apex predators</td><td><b>Not on the ladder.</b> Their own raw FREQUENCY, capped at 5, so DF rarely sends them. The apex scheduler places them instead (its presence targets: land 25, water 20, caverns 70).</td></tr>
         <tr><td>Resting species</td><td>Not on the ladder. Surface: held by their stock (entries at 0). Caverns: FREQUENCY 0 (vermin 1).</td></tr>
       </table>
@@ -417,7 +417,7 @@
         <div class="arrow"></div>
         <div class="step"><span class="badge">4</span><span class="t">Size within its slot</span>: × (its adult size ÷ the geometric mean size of the members in the same slot)<sup>−0.75</sup>, kept between ×0.25 and ×4. The smaller of two grazers comes more often than the bigger one.</div>
         <div class="arrow"></div>
-        <div class="step"><span class="badge">5</span><span class="t">Split between the levels by the pyramid</span>, the target share of <i>animals</i> per level, per season. Inside a level, each member gets its level's share in proportion to steps 3 × 4.
+        <div class="step"><span class="badge">5</span><span class="t">Split between the levels by the pyramid</span>, the target share of <i>animals</i> per level. The split is applied to the whole year's members at once (one ladder per year), so a single season's cast can miss it (see the season tables below). Inside a level, each member gets its level's share in proportion to steps 3 × 4.
           <table class="t1" style="margin-top:6px;max-width:700px">
             <tr><th>Pyramid (% of animals)</th><th>prey H</th><th>predators C</th><th>apex A (scheduler)</th></tr>
             <tr><td>land</td><td>73</td><td>20</td><td>7</td></tr><tr><td>flying</td><td>80</td><td>20</td><td>0</td></tr>
@@ -1168,7 +1168,7 @@
       <div class="step"><span class="badge">g</span><span class="t">File and housekeeping</span>
         <ul><li>A water-cast species is counted in its water body; a flying-cast one, as flying.</li>
             <li>The season tally is noted (who was here, for the food web's past seasons).</li>
-            <li><b>Adopt</b> animals already here: cavern natives <span class="chip c-on">ON</span>, seeded water schools <span class="chip c-on">ON</span>, land natives <span class="chip c-off">OFF</span>. Young join their mothers' groups.</li>
+            <li><b>Adopt</b> animals already here: cavern natives <span class="chip c-on">ON</span>, seeded water schools <span class="chip c-on">ON</span>, land natives <span class="chip c-off">OFF</span>, but under season casts land natives are adopted and counted anyway (<code>natives_land or cast</code>), so in practice <span class="chip c-on">ON</span>. Young join their mothers' groups.</li>
             <li>Cast turnover (panel 3, step 5).</li>
             <li><b>Leave check</b>: a sent-off animal that can't walk out is taken off the map after 7 days.</li></ul></div>
       <div class="arrow"></div>
@@ -1255,7 +1255,7 @@
     <div class="body grid g5">
       <div class="step"><span class="t">Alerts</span> · 10 ticks <span class="chip c-on">ON</span><br>A fight between wild animals with no person in it doesn't light the fort's alert button. The reports stay in each animal's log.</div>
       <div class="step"><span class="t">Curious thieves stay</span> · 50 ticks <span class="chip c-on">ON</span><br>A curious beast that steals loses the habit and stays, instead of walking off the map with the loot. A species the player marks "resident" keeps it the same way.</div>
-      <div class="step offstep"><span class="t">Scavenging</span> · 200 ticks <span class="chip c-off">OFF</span><br>Bone scavengers (and swimmer scavengers, sharks included) find remains they can reach and eat them.</div>
+      <div class="step"><span class="t">Scavenging</span> · 200 ticks <span class="chip c-on">ON</span> <span class="note">(opt-in default; enable and a new fort turn it on)</span><br>Bone scavengers (and swimmer scavengers, sharks included) find remains they can reach and eat them.</div>
       <div class="step offstep"><span class="t">Vermin forage</span> · 100 ticks <span class="chip c-off">OFF</span><br>Foragers walk to food; whether it was eaten, gone or missed is traced.</div>
       <div class="step"><span class="t">Water renderer</span> · every frame<br>See-through water with creatures under it. It changes nothing in the game, only how it looks.</div>
     </div>
@@ -1337,8 +1337,8 @@
         <tr><td>Nudge (move a far predator nearer prey)</td><td><span class="chip c-off">OFF</span> <span class="note">opt-in</span></td><td>Panel: Nudge</td><td>6</td></tr>
         <tr><td>Raptor stoops</td><td><span class="chip c-off">OFF</span> <span class="note">parked</span></td><td><code>hunters stoop on|off</code></td><td>6</td></tr>
         <tr><td>Bear fishing</td><td><span class="chip c-off">OFF</span> <span class="note">parked</span></td><td>—</td><td>6</td></tr>
-        <tr><td>Vermin hunting flags</td><td><span class="chip c-off">OFF</span> <span class="note">opt-in</span></td><td><code>hunting on|off</code></td><td>1</td></tr>
-        <tr><td>Scavenging</td><td><span class="chip c-off">OFF</span> <span class="note">opt-in</span></td><td><code>scavenge on|off</code></td><td>7</td></tr>
+        <tr><td>Vermin hunting flags</td><td><span class="chip c-on">ON</span> <span class="note">opt-in default; enable turns it on</span></td><td><code>hunting on|off</code></td><td>1</td></tr>
+        <tr><td>Scavenging</td><td><span class="chip c-on">ON</span> <span class="note">opt-in default; enable turns it on</span></td><td><code>scavenge on|off</code></td><td>7</td></tr>
         <tr><td>Vermin foraging walks</td><td><span class="chip c-off">OFF</span> <span class="note">parked</span></td><td><code>vermin forage on|off</code></td><td>7</td></tr>
         <tr><td>Curious thieves stay</td><td><span class="chip c-on">ON</span></td><td>Panel: Curious thieves stay</td><td>7</td></tr>
         <tr><td>Quiet wildlife fights</td><td><span class="chip c-on">ON</span></td><td>Panel: Quiet wildlife fights</td><td>7</td></tr>
